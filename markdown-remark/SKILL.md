@@ -1,6 +1,6 @@
 ---
 name: markdown-remark
-description: Use this skill when formatting, linting, or validating markdown with remark (the unified/mdast toolchain) — setting it up in a project, adding plugins, writing a custom rule, or debugging output remark mangled. Covers the config, the plugin map, the escaping hazards that silently corrupt documents, table formatting, and how to verify a formatter before letting it near real files. Also read it before running any bulk markdown reformat, remark or otherwise.
+description: Use this skill when formatting, linting, or validating markdown — running `mdfmt` (the markdown-toolbox CLI), setting up remark (the unified/mdast toolchain) in a project, adding plugins, writing a custom rule, or debugging output a formatter mangled. Covers the `mdfmt` command and its config, the remark plugin map, the escaping hazards that silently corrupt documents, matching IntelliJ's table style, and how to verify a formatter before letting it near real files. Also read it before running any bulk markdown reformat, with any tool.
 ---
 
 # Markdown editing with remark
@@ -24,28 +24,42 @@ Two consequences that drive everything below:
 - **Any syntax remark doesn't know about is at risk.** It doesn't preserve unknown inline syntax
   verbatim — it escapes what looks ambiguous, so custom constructs come back as literal text.
 
-## Before installing anything: `mdfmt`
+## Reach for `mdfmt` first
 
-A per-project remark install is often the wrong move — it duplicates `node_modules` into every
-project that has docs, and collides with whatever build the project already has. Prefer
-[`markdown-toolbox`](https://github.com/) (`tools/markdown-toolbox` in this workspace), which ships
-remark, its plugins, and their config together in one package:
+A per-project remark install is usually the wrong move: it duplicates `node_modules` into every
+project that has docs, and collides with whatever build the project already has. **`mdfmt` is
+installed once per machine and is on `PATH`** — it ships remark, its plugins, and their config
+together in one package (`markdown-toolbox`), so it formats any directory without that directory
+gaining a single dependency:
 
 ```shell
-npx markdown-toolbox docs           # format in place
-npx markdown-toolbox --check docs   # CI; exit 1 on unformatted files or lint problems
+mdfmt docs                    # format in place
+mdfmt --check docs            # CI; exit 1 on unformatted files or lint problems
+mdfmt --stdin < note.md       # format one document to stdout
 ```
 
 It formats **byte-identically to IntelliJ's own formatter**, so the IDE's table inspection stays
 quiet and the two never overwrite each other. It also exports an mdast toolkit (`read`, `write`,
-`selectAll`, `getFrontmatter`, `setFrontmatter`) for structural edits — reach for that instead of
-regexes when editing markdown programmatically. Read the rest of this skill anyway: everything below
-about escaping, table hazards, and verification applies to it, because it *is* remark.
+`selectAll`, `getFrontmatter`, `setFrontmatter`) — import it by absolute path from a throwaway script
+and reach for that instead of regexes when editing markdown structurally. Read the rest of this skill
+anyway: everything below about escaping, table hazards, and verification applies to it, because it
+*is* remark.
 
-> **Why not a global install?** remark resolves plugins relative to the *config file*, and ESM
-> ignores `NODE_PATH`. A project-local `.remarkrc.mjs` can therefore only load plugins installed in
-> that same project, and `npm install -g` is invisible to it. The config and the plugins have to live
-> in one directory — which is exactly what the package is.
+Optional per-project settings live in a `markdown-toolbox.config.mjs` at the project root — target
+globs, serialiser overrides, front-matter JSON Schemas, link checking. It exports plain data, so the
+project still needs no dependencies. Run `mdfmt --help` for the current flags.
+
+> **If `mdfmt` is not on `PATH`** (check with `mdfmt --version`), this machine hasn't got it yet.
+> From a checkout of `markdown-toolbox`, `ln -s "$PWD/bin/mdfmt.mjs" ~/.local/bin/mdfmt` is enough —
+> Node resolves the symlink to its real path, so the package's own dependencies still resolve. With
+> no checkout, `npx --package=<path-or-git-url> -- mdfmt …` runs it without installing anything; the
+> `--package=` form is required, because `npx <path>` tries to execute the path as a command.
+
+> **Why can't remark itself be installed globally?** It resolves plugins relative to the *config
+> file*, and ESM ignores `NODE_PATH`. A project-local `.remarkrc.mjs` can therefore only load plugins
+> installed in that same project, and `npm install -g remark-cli` is invisible to it. The config and
+> the plugins have to sit in one directory — which is precisely what `markdown-toolbox` packages, and
+> why it works where a global remark doesn't.
 
 ## Minimal setup
 
@@ -170,13 +184,20 @@ Two rules for anything in that pass:
 
 ## Verify before you let it write
 
-A formatter that reflows the whole document deserves an actual test, not a hopeful `--output`:
+A formatter that reflows the whole document deserves an actual test, not a hopeful first run. Work on
+a copy and read the diff before anything touches the real tree:
 
 ```shell
 cp -R docs /tmp/verify
-npx remark /tmp/verify --rc-path .remarkrc.mjs --output    # note --rc-path
+mdfmt /tmp/verify
 diff -r docs /tmp/verify | grep -E '^[<>]' | grep -v '^[<>] *|'   # non-table changes
+mdfmt --check /tmp/verify                                         # exit 0 ⇒ idempotent
 ```
+
+With a hand-rolled per-project pipeline instead of `mdfmt`, the equivalent is
+`npx remark /tmp/verify --rc-path .remarkrc.mjs --output` — and `--rc-path` is not optional there,
+because config discovery walks up from the *input* files, so a copy outside the project would
+otherwise be formatted with no config at all.
 
 Then check, in order of how badly each bites:
 
@@ -207,13 +228,28 @@ Use `additionalProperties: false` to reject invented fields, `enum` for closed v
 This converts written-down conventions into failures, which is the entire point — prose conventions
 decay, schema violations don't.
 
-## In this repo
+With `mdfmt` the same thing lives in `markdown-toolbox.config.mjs` and needs no plugin wiring:
 
-`.remarkrc.mjs` at the root is a worked example of all of the above: pinned settings, a custom
-`stringLength`, a compiler post-pass with fence skipping, and glob-mapped schemas in `.remark/`. It
-targets `docs/wiki/`, a Foam wiki — see the `wiki-docs` skill for what that adds.
-
-```shell
-npm run docs:check     # lint + validate + schema, no writes
-npm run docs:format    # rewrite in place
+```js
+export default {
+  files: ['docs/**/*.md'],
+  schemas: {
+    './.remark/note.json': ['docs/**/*.md'],
+    './.remark/plan.json': ['docs/planned/*.md'],
+  },
+}
 ```
+
+Schema paths resolve relative to the project, not to the tool, so the rules live next to the notes
+they govern. They run under `--check` only; formatting stays purely mechanical.
+
+## The worked example
+
+`markdown-toolbox` is the reference implementation of everything above — pinned settings, a compiler
+post-pass with fence skipping, IntelliJ-matched table layout, and glob-mapped schemas. If you need to
+write your own pass, read `lib/intellij-tables.mjs` and the fixtures beside it first; the
+`*.expected.md` files are real IntelliJ output, which is the only reliable way to know what the IDE
+actually does rather than what its docs imply.
+
+For a Foam wiki specifically, see the `wiki-docs` skill: Foam owns the link graph, remark owns the
+documents.
