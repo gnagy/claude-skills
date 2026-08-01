@@ -11,14 +11,45 @@ can share them instead of each growing its own copy.
 ## Installing
 
 A skill is a directory containing a `SKILL.md`. Claude Code loads them from `~/.claude/skills` (all
-projects) or `.claude/skills` (one project), so either symlink or copy:
+projects) or `.claude/skills` (one project). Install from a clone of this repo, run from its root.
+
+Every skill, user-level:
 
 ```shell
-ln -s "$PWD/markdown-remark" ~/.claude/skills/markdown-remark
+npx skills add "$PWD" --skill '*' --agent claude-code --agent universal -g -y
 ```
 
-Symlinking keeps every project on the same version, which is usually what you want — the point of
-this repo is that fixing a skill once fixes it everywhere.
+A single skill:
+
+```shell
+npx skills add "$PWD" --skill markdown-remark --agent claude-code --agent universal -g -y
+```
+
+Into the current project rather than user-level — drop `-g`:
+
+```shell
+npx skills add "$PWD" --skill wiki-docs --agent claude-code --agent universal -y
+```
+
+Each of these writes one canonical copy to `~/.agents/skills/<name>/` and symlinks it into the
+agent's directory (`~/.claude/skills/`). That layout is the point: one file, many agents, nothing
+that can drift.
+
+**Name `universal` whenever you scope agents.** `--agent claude-code` *alone* has no canonical store
+to point at, so `skills add` writes a **real directory** into `~/.claude/skills/` instead of a
+symlink — abandoning `~/.agents/skills/` and reintroducing exactly the duplication this layout
+avoids. Pairing it with `--agent universal` is what keeps one copy and one link.
+
+Verify with `ls -l ~/.claude/skills/`: every entry should be a symlink into `../../.agents/skills/`.
+A real directory there is a copy that will drift.
+
+**Installs are snapshots.** `npx skills update` does not refresh local-path sources, so re-run
+`skills add` after editing a skill — otherwise sessions keep loading the previous version with no
+warning. For a skill you are actively editing, symlink instead so changes are live:
+
+```shell
+ln -s "$PWD/<name>" ~/.claude/skills/<name>
+```
 
 ## Writing one
 
