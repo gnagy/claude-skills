@@ -235,6 +235,14 @@ here specifically, because a wiki's entire value is the edges. Practical consequ
 - **After any bulk markdown operation, verify the graph, not just the text.** `grep -r '\[\[' `
   counts and `foam lint` reporting `0 errors` are the check that matters. Text-level diffs won't
   show you a destroyed graph.
+- **`![[embeds]]` need one more check.** The plugin tokenises `[[…]]` only, so the `!`-prefixed
+  transclusion form is *not* covered by it — plain remark escapes it to `!\[\[note]]`, which stops
+  being an embed in both Foam and Obsidian. `mdfmt` repairs that on the way out; any other pipeline
+  needs its own post-pass. Grep for `'!\[\[' ` separately after a bulk run, since the wikilink count
+  above is unchanged by it.
+- **An embed is invisible to remark either way.** Even repaired it stays a text node, not a
+  `wikiLink`, so `remark-validate-links` and toolkit helpers like `wikiLinks()` never see the target.
+  Foam does see it, so `foam lint` remains the authority on whether an embed points anywhere.
 
 Two other wiki-flavoured uses of the same toolchain:
 

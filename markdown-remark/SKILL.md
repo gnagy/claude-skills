@@ -113,14 +113,23 @@ writes nothing — **always start read-only**.
 These are the failure modes that cost real time. Most are silent — the document still *renders*
 correctly, so review doesn't catch them.
 
-| Hazard                       | Symptom                                                                                                     | Fix                                            |
-|------------------------------|-------------------------------------------------------------------------------------------------------------|------------------------------------------------|
-| Custom inline syntax escaped | `[[link]]` → `\[\[link]]`, `{{var}}` → `\{{var}}`. Renders fine, means nothing to the tool that consumed it | Load the plugin that teaches remark the syntax |
-| Front matter destroyed       | YAML becomes a thematic break plus paragraphs                                                               | `remark-frontmatter`                           |
-| Lone `~` escaped             | "~15 rows" → "\\~15 rows"                                                                                   | No option exists; post-process or live with it |
-| Whole-document restyle       | Every `-` bullet becomes `*`, every list reindents                                                          | Pin `settings`                                 |
-| Table misalignment           | Columns skew on any row with wide glyphs                                                                    | Custom `stringLength` (see below)              |
-| `validate-links` aborts      | "Cannot find remote `origin`" on every file                                                                 | `{repository: false}`                          |
+| Hazard                       | Symptom                                                                                                     | Fix                                              |
+|------------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| Custom inline syntax escaped | `[[link]]` → `\[\[link]]`, `{{var}}` → `\{{var}}`. Renders fine, means nothing to the tool that consumed it | Load the plugin that teaches remark the syntax   |
+| Front matter destroyed       | YAML becomes a thematic break plus paragraphs                                                               | `remark-frontmatter`                             |
+| Wiki embed escaped           | `![[note]]` → `!\[\[note]]`, even *with* `remark-wiki-link`, which tokenises only `[[…]]`                   | No plugin covers it; post-process (`mdfmt` does) |
+| Lone `~` escaped             | "~15 rows" → "\\~15 rows"                                                                                   | No option exists; post-process or live with it   |
+| Whole-document restyle       | Every `-` bullet becomes `*`, every list reindents                                                          | Pin `settings`                                   |
+| Table misalignment           | Columns skew on any row with wide glyphs                                                                    | Custom `stringLength` (see below)                |
+| `validate-links` aborts      | "Cannot find remote `origin`" on every file                                                                 | `{repository: false}`                            |
+
+**A construct the parser never tokenises can't be fixed with an option.** Escaping is decided per
+*text* node while serialising, so the levers are a plugin that turns the syntax into a node of its
+own, or a post-pass over the serialised text. Embeds are the case where the plugin isn't enough:
+`remark-wiki-link` matches `[[…]]` only, so `![[note]]` arrives as text and `![` has to be escaped or
+it would re-read as an image. A post-pass must skip code spans and fences, or it corrupts the
+documents most likely to contain the escaped form — the ones *about* escaping. `markdown-toolbox`'s
+`lib/intellij-tables.mjs` is the worked example, undoing `\~` and `!\[\[` that way.
 
 **Fenced code is safe** — code nodes are opaque, so mermaid diagrams, examples, and anything else
 inside fences round-trip byte for byte. This is the one thing you don't have to worry about, and
