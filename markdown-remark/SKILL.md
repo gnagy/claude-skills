@@ -49,11 +49,13 @@ Optional per-project settings live in a `markdown-toolbox.config.mjs` at the pro
 globs, serialiser overrides, front-matter JSON Schemas, link checking. It exports plain data, so the
 project still needs no dependencies. Run `mdfmt --help` for the current flags.
 
-> **If `mdfmt` is not on `PATH`** (check with `mdfmt --version`), this machine hasn't got it yet.
-> From a checkout of `markdown-toolbox`, `ln -s "$PWD/bin/mdfmt.mjs" ~/.local/bin/mdfmt` is enough —
+> **If `mdfmt` is not on `PATH`** (check with `mdfmt --version`), this machine hasn't got it yet. It
+> is **not on npm** — it lives at [github.com/gnagy/markdown-toolbox](https://github.com/gnagy/markdown-toolbox).
+> From a checkout, `npm install` then `ln -s "$PWD/bin/mdfmt.mjs" ~/.local/bin/mdfmt` is enough —
 > Node resolves the symlink to its real path, so the package's own dependencies still resolve. With
-> no checkout, `npx --package=<path-or-git-url> -- mdfmt …` runs it without installing anything; the
-> `--package=` form is required, because `npx <path>` tries to execute the path as a command.
+> no checkout, `npx --package=github:gnagy/markdown-toolbox -- mdfmt …` runs it without installing
+> anything into the project; the `--package=` form is required, because `npx <spec>` treats a bare
+> path or repo as a command to execute rather than a package to fetch.
 
 > **Why can't remark itself be installed globally?** It resolves plugins relative to the *config
 > file*, and ESM ignores `NODE_PATH`. A project-local `.remarkrc.mjs` can therefore only load plugins
