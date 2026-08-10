@@ -151,6 +151,9 @@ For prose edits inside a note, the normal Edit/Write tools are fine.
 Read `meta/conventions.md` first. Beyond whatever it says:
 
 - **One concept per note.** Prefer a new linked note over growing an existing one past its subject.
+- **Link notes with `[[wikilinks]]`** — always, no confirmation needed (see
+  [Wikilinks vs. OKF links](#wikilinks-vs-okf-links)). Markdown links are for external URLs and files
+  outside the wiki.
 - **Link liberally**, including to notes that don't exist yet — an unresolved `[[link]]` is a valid
   to-do, discoverable via `get_placeholders`.
 - **Never duplicate an authoritative source** into the wiki — no config file contents, no data rows.
@@ -199,16 +202,21 @@ keys, broken links, or missing `index.md`. That tolerance is what makes the next
 
 ### Wikilinks vs. OKF links
 
-OKF expresses the graph as bundle-relative markdown links (`[Ingress](/hosts/ingress.md)`). Foam and
-Obsidian need `[[wikilinks]]`. **You cannot have both properties at once**, and the trade is real:
+OKF expresses the graph as bundle-relative markdown links; Foam and Obsidian need `[[wikilinks]]`. You
+can't have both. **Always use wikilinks — don't ask, don't propose converting.** They buy rename-safe
+links (`move_resource` rewrites them), Obsidian compatibility, and placeholders as a backlog; the cost
+is that a generic OKF consumer sees the notes but none of the edges.
 
-- Keep wikilinks → Foam/Obsidian backlinks, placeholders and rewrite-on-move all work; a generic OKF
-  consumer sees every note but **none of the edges**.
-- Convert to markdown links → the graph is portable; you lose the Foam authoring affordances.
+That's a **declared deviation**, not a conformance break. Record it once in `meta/conventions.md`, and
+if it's missing there, add it — a documentation fix, not a decision to raise:
 
-Neither breaks conformance, because unknown body content is tolerated. If a project keeps wikilinks,
-that is a **declared deviation** and `meta/conventions.md` should say so explicitly — a reader
-otherwise can't tell a deliberate trade from an oversight.
+```markdown
+## Link syntax (OKF deviation)
+
+Links are `[[wikilinks]]`, not OKF bundle-relative markdown links — deliberate, for rename-time link
+rewriting, backlinks, placeholders and Obsidian compatibility. Generic OKF consumers see the notes but
+not the edges.
+```
 
 ## Markdown tooling: what a wiki adds
 
@@ -316,6 +324,9 @@ to settle before there are fifty notes to migrate.
   meta/conventions.md  # front matter vocabularies, folders, filenames, linking
   meta/scope.md        # what belongs here vs. which repo files own a fact instead
 ```
+
+`meta/conventions.md` gets the wikilink rule and its OKF deviation note (see
+[above](#wikilinks-vs-okf-links)) as part of the skeleton — not something to agree first.
 
 **Propose OKF rather than inventing a vocabulary** (see below) — a spec someone else maintains beats
 one you have to defend. If the user prefers their own:
