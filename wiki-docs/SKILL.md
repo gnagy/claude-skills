@@ -1,6 +1,6 @@
 ---
 name: wiki-docs
-description: Use this skill to read, search, or edit the project wiki — a Foam markdown knowledge base served by the foam-wiki MCP server, usually also an Open Knowledge Format (OKF) bundle. Use it to look up context before making a change, and to capture new knowledge as linked notes. Covers the foam-wiki MCP tools, the lookup and editing workflow, OKF conformance and its front-matter vocabularies, and how to bootstrap a wiki in a project that doesn't have one yet.
+description: Use this skill to read, search, or edit the project wiki — a Foam markdown knowledge base of `[[wikilink]]`-connected notes served by the foam-wiki MCP server, usually an Open Knowledge Format (OKF) bundle. Look something up here before changing it, and capture what you learn as linked notes. Also covers bootstrapping a wiki, and other projects' wikis mounted read-only alongside.
 ---
 
 # Wiki Docs
@@ -26,20 +26,27 @@ config, and data files that are the executable truth.
 The wiki root is whatever `.mcp.json` passes as `--workspace` to the `foam-wiki` server; by convention
 `docs/wiki/`. All URIs below are relative to that root.
 
-Three notes define how this particular wiki works. Read them before writing anything:
+**There may be more than one foam server.** A project can mount other projects' wikis read-only
+alongside its own — see [Other wikis](#other-wikis-read-only-mounts). Exactly one is writable: yours.
+`get_workspace_info` reports `root_dir` and `read_only`, so confirm which server you are talking to
+before writing, rather than inferring it from the server's name.
+
+Three notes define how this particular wiki works, and a fourth appears only in projects that exchange
+knowledge with other wikis. Read them before writing anything:
 
 | URI                         | What it defines                                                         |
 |-----------------------------|-------------------------------------------------------------------------|
 | `index.md` (or `README.md`) | Home — what this wiki covers and an index of the notes that exist       |
 | `meta/conventions.md`       | **Front matter vocabularies, folder layout, filenames, linking rules**  |
 | `meta/scope.md`             | What belongs in the wiki vs. which files in the repo own a fact instead |
+| `meta/interop.md`           | *Only if present* — see [Other wikis](#other-wikis-read-only-mounts)    |
 
 ```
 read_resource(uri: "index.md")
 read_resource(uri: "meta/conventions.md")
 ```
 
-If those notes don't exist, see [Bootstrapping](#bootstrapping-a-new-wiki) at the end.
+If those notes don't exist, read `setup.md` beside this file.
 
 **Never invent front-matter fields, values, or folders.** The controlled vocabularies live in
 `meta/conventions.md`; extending them is a decision to raise with the user, not to make silently.
@@ -60,87 +67,50 @@ tags: [<tag>, <tag>]
 ## foam-wiki MCP tools
 
 Prefer these over `grep`/`find` for wiki lookups — they understand the link graph and front matter.
-Reference: <https://docs.foam.md/tools/cli/mcp/>
+The server ships a description and schema for every tool, so this section carries only what those
+can't: which tool to reach for, in what order, and the rules that involve tools foam doesn't know
+exist. Reference: <https://docs.foam.md/tools/cli/mcp/>
 
-### Discovery and navigation
-
-**`get_workspace_info`** — note/tag/orphan/placeholder counts. Call it to confirm the server is live
-and to gauge the wiki's size before exploring.
-
-**`list_resources`** — list notes, optionally filtered.
-
-```
-list_resources()
-list_resources(tag: "<tag>")
-list_resources(type: "moc")
-```
-
-**`list_tags`** — the full tag vocabulary. Check it *before* searching by tag, and before adding a tag
-to a new note, so you reuse an existing one instead of coining a near-duplicate.
-
-**`search_resources`** — full-text search across title, alias, tag, and front-matter properties.
-
-**`search_by_tag`** — exact tag match.
-
-**`search_by_property`** — search any front-matter property, e.g. `status`, `type`.
-
-### Reading content
-
-**`read_resource`** — raw markdown of a note, by URI relative to the wiki root.
-
-```
-read_resource(uri: "meta/conventions.md")
-```
-
-**`get_outline`** — heading structure only. Use it to scan a long note before committing to a full read.
-
-**`get_resource`** — front matter and URI without the body.
-
-### Graph navigation
-
-**`get_connections`** — outgoing links and/or backlinks for a note. The fastest way to widen a search
-from one relevant note to its neighbourhood.
-
-```
-get_connections(uri: "<uri>", direction: "both")
-```
-
-**`traverse_graph`** — multi-hop traversal from a starting note, for mapping a whole topic.
-
-**`get_placeholders`** — link targets that don't exist yet. This is the backlog of notes worth writing.
-
-**`get_orphans`** — notes nothing links to. Either a navigation gap or a note that should be linked
-from an index.
-
-**`get_deadends`** — notes with no outgoing links; usually under-connected.
-
-**`get_graph_summary`** — high-level graph stats.
-
-### Saved queries
-
-**`list_queries`** / **`get_query`** / **`run_query`** — saved Foam queries, if the workspace defines any.
+| Tool                                       | Reach for it when                                                       |
+|--------------------------------------------|-------------------------------------------------------------------------|
+| `get_workspace_info`                       | First call — is the server live, and is `root_dir` the wiki you mean    |
+| `search_resources`                         | Default entry point for a topic                                         |
+| `list_tags` → `search_by_tag`              | In that order — see the vocabulary before coining a near-duplicate      |
+| `search_by_property`                       | By front-matter axis, e.g. everything still `draft`                     |
+| `list_resources`                           | Enumerating by `type` or `tag` when you already know the axis           |
+| `read_resource`                            | The note itself, by URI relative to the wiki root                       |
+| `get_outline`                              | Scanning a long note before committing to a full `read_resource`        |
+| `get_resource`                             | Front matter alone, without the body                                    |
+| `get_connections`                          | Widening from one hit to its neighbours — the highest-yield second call |
+| `traverse_graph`                           | Mapping a whole topic, multi-hop                                        |
+| `get_placeholders`                         | The backlog: links pointing at notes worth writing                      |
+| `get_orphans` / `get_deadends`             | Under-connected notes — a navigation gap, or a missing index entry      |
+| `get_graph_summary`                        | Graph-level stats                                                       |
+| `list_queries` / `get_query` / `run_query` | Saved Foam queries, if the workspace defines any                        |
 
 ### Writes
 
-Available when the server runs with `--allow-writes`:
+Available only when the server runs with `--allow-writes`.
 
-- **`move_resource`** — moves or renames a note **and rewrites every wikilink pointing at it**. Always
-  use this rather than `mv`; a plain move silently breaks the graph.
-- **`update_resource`** — front-matter patches.
-- **`add_tags`** / **`remove_tags`** / **`rename_tag`** — tag mutations. `rename_tag` updates every note.
-- **`create_resource`** / **`delete_resource`** — whole notes.
-
-For prose edits inside a note, the normal Edit/Write tools are fine.
+- **`move_resource`, never `mv`.** It rewrites every inbound wikilink; a plain move silently breaks
+  the graph. Likewise **`rename_tag`** rather than `sed` — it updates every note that carries the tag.
+- **`update_resource` overwrites.** Passing `content` replaces the **whole file**, not a section, and
+  `properties` merges front matter only while `merge_properties` is true — `false` replaces it
+  wholesale. For a prose edit inside a note, use the normal Edit tool instead.
+- **`add_tags` / `remove_tags`** for tags on one note; **`create_resource` / `delete_resource`** for
+  whole notes.
 
 ---
 
 ## Lookup workflow
 
-1. **`get_workspace_info`** — confirm the server is up.
-2. **Start at `index.md`** (or `README.md`) — it indexes what exists and frames the subject matter.
-3. **Search** — `search_resources` for the topic, or `list_tags` then `search_by_tag`.
-4. **Widen** — `get_connections` on each hit to pick up neighbours you'd otherwise miss.
-5. **Follow the note to its source.** A good note points at the authoritative file. Read that file
+1. **`get_workspace_info`** — confirm the server is up, and that `root_dir` is the wiki you mean.
+2. **If `meta/interop.md` exists**, check the inbox it declares — messages from other wikis, oldest
+   first. Resolve or consciously defer them before starting new work.
+3. **Start at `index.md`** (or `README.md`) — it indexes what exists and frames the subject matter.
+4. **Search** — `search_resources` for the topic, or `list_tags` then `search_by_tag`.
+5. **Widen** — `get_connections` on each hit to pick up neighbours you'd otherwise miss.
+6. **Follow the note to its source.** A good note points at the authoritative file. Read that file
    when the detail matters — **the source wins over the note**, and a note found to be stale should be
    fixed as part of the work.
 
@@ -168,6 +138,47 @@ Read `meta/conventions.md` first. Beyond whatever it says:
 
 Tables are written as aligned rectangles, not left ragged — see the `markdown-remark` skill for the
 mechanics and `meta/conventions.md` for which delimiter style this project uses.
+
+### No display-text overrides
+
+**Use plain stems: `[[note-stem]]`, never `[[stem|text]]`.** A rename — `move_resource`, or `foam
+rename` on the CLI — rewrites the *target* of a labelled link but preserves the *label*, so
+`[[target|the old description]]` becomes
+`[[power-supply-unit|the old description]]` — still rendering the old name, pointing at a note that is
+no longer called that. It renders fine, so nothing looks broken.
+
+A label is a copy of the note's identity that no tool will ever update.
+
+**When a bare link won't fit the sentence, put the phrase in prose and the link beside it.** Never
+reach for a label to fix the grammar:
+
+- `Dashboards are [[two-tier-state|tier 2]]` → `Dashboards are tier 2 ([[two-tier-state]])`
+- `everything [[deploy-to-instance|rsync]] touches` → `everything rsync touches (see [[deploy-to-instance]])`
+
+Both forms resolve identically in Foam's graph, so this is about drift, not connectivity.
+
+---
+
+## Other wikis (read-only mounts)
+
+A project may mount other projects' wikis as additional read-only foam servers, conventionally named
+`foam-<project>`. Only your own wiki is writable.
+
+**`meta/interop.md` is the switch.** If the wiki has one, this project exchanges knowledge with
+others, and that note declares which wikis are mounted, what each is authoritative for, and where
+this project's own inbox is. If the wiki has no such note, none of this applies.
+
+Two rules hold whether or not you read further, because breaking either is silent:
+
+- **Never edit another project's notes.** The read-only mount is the guarantee; don't route around it
+  with Write/Edit. If something there is wrong, send it a message or go work in that repo.
+- **Never write a cross-wiki reference as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]`
+  as a placeholder, so it lands in `get_placeholders` permanently and poisons the one signal that
+  means "note worth writing". Name the wiki and the note in plain prose instead.
+
+**Read `interop.md` beside this file** before consulting a mounted wiki, copying anything out of one,
+or sending it a message. It covers provenance, foreign front-matter vocabularies, the inbox protocol
+and the message format.
 
 ---
 
@@ -274,7 +285,7 @@ foam list orphans --workspace <wiki-root>
 ```
 
 Run the project's markdown check in the same pass — the two cover different link types, so neither
-alone is sufficient. In this repo:
+alone is sufficient. `meta/conventions.md` names the command; conventionally it is an npm script:
 
 ```shell
 npm run docs:check                            # remark: lint, links, front-matter schema
@@ -286,58 +297,8 @@ follow whatever the existing notes do.
 
 ---
 
-## Setup
+## Setup and bootstrapping
 
-The server is configured per project in `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "foam-wiki": {
-      "command": "npx",
-      "args": ["-y", "foam-cli", "mcp", "--allow-writes", "--workspace", "docs/wiki"]
-    }
-  }
-}
-```
-
-`--workspace` is relative to the project root. Drop `--allow-writes` for a read-only wiki. `npx -y`
-fetches `foam-cli` on demand; install it globally to avoid that on every start:
-
-```shell
-npm install -g foam-cli
-```
-
-Adding or changing the server requires restarting the agent session and approving it.
-
----
-
-## Bootstrapping a new wiki
-
-If the wiki root or its `meta/` notes don't exist yet, create the skeleton — then **stop and agree the
-structure with the user** before writing a large number of notes. Layout and taxonomy are much cheaper
-to settle before there are fifty notes to migrate.
-
-```
-<wiki-root>/
-  index.md             # home + index of notes (OKF reserves this name; no front matter)
-  meta/conventions.md  # front matter vocabularies, folders, filenames, linking
-  meta/scope.md        # what belongs here vs. which repo files own a fact instead
-```
-
-`meta/conventions.md` gets the wikilink rule and its OKF deviation note (see
-[above](#wikilinks-vs-okf-links)) as part of the skeleton — not something to agree first.
-
-**Propose OKF rather than inventing a vocabulary** (see below) — a spec someone else maintains beats
-one you have to defend. If the user prefers their own:
-
-- **`type`**: a string, one of `note` · `moc` · `adr` · whatever the domain needs.
-- **`status`**: `draft` · `stable` · `deprecated`.
-- **Filenames**: kebab-case, globally unique basenames — that keeps `[[stem]]` links unambiguous
-  regardless of folder.
-- **Folders**: start flat. Split only when navigation actually hurts, using `move_resource`.
-- **Classification**: tags first. Add front-matter axes (`area`, `domain`, `owner`, …) only when a real
-  navigation need appears — each one is a vocabulary someone has to maintain.
-
-Seed the wiki from what the repo already documents (READMEs, docs directories, agent instruction files),
-and write down contradictions between sources as open questions rather than resolving them by guesswork.
+`.mcp.json` server config, mounting other projects' wikis, and the skeleton for a wiki that doesn't
+exist yet are in **`setup.md` beside this file**. Read it when `get_workspace_info` finds no server,
+when the `meta/` notes are missing, or when asked to add a wiki to a project.
