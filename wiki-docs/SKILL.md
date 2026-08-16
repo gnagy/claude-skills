@@ -168,17 +168,21 @@ A project may mount other projects' wikis as additional read-only foam servers, 
 others, and that note declares which wikis are mounted, what each is authoritative for, and where
 this project's own inbox is. If the wiki has no such note, none of this applies.
 
-Two rules hold whether or not you read further, because breaking either is silent:
+Three rules hold whether or not you read further, because breaking any of them is silent:
 
 - **Never edit another project's notes.** The read-only mount is the guarantee; don't route around it
   with Write/Edit. If something there is wrong, send it a message or go work in that repo.
 - **Never write a cross-wiki reference as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]`
   as a placeholder, so it lands in `get_placeholders` permanently and poisons the one signal that
   means "note worth writing". Name the wiki and the note in plain prose instead.
+- **Never mount a wiki that depends on yours.** Mounts run one way, down the dependency: the project
+  that already depends on the other mounts it, never the reverse — a depended-on project has to build
+  and be worked on with no sibling checkout present. Two wikis mounting each other is a cycle, and it
+  usually arrives as "mirroring their setup". See *Which way a mount points* in `interop.md`.
 
-**Read `interop.md` beside this file** before consulting a mounted wiki, copying anything out of one,
-or sending it a message. It covers provenance, foreign front-matter vocabularies, the inbox protocol
-and the message format.
+**Read `interop.md` beside this file** before adding a mount, consulting a mounted wiki, copying
+anything out of one, or sending it a message. It covers provenance, foreign front-matter
+vocabularies, the inbox protocol and the message format.
 
 ---
 

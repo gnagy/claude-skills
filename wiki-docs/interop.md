@@ -16,6 +16,24 @@ without it has no write surface at all rather than an unused one.
 before writing, rather than inferring it from the server's name. To add a mount, see `setup.md`
 beside this file.
 
+### Which way a mount points
+
+**Mounts run one way: down the dependency, never back up.** The project that already depends on the
+other is the one that mounts it — a build consuming another repo's output, a migration targeting
+another repo's schema, a script shelling into a sibling path. The depended-on project must never
+mount its dependent: it has to build and be worked on with no sibling checkout present.
+
+Two wikis mounting each other is a cycle. The symptom is a path to repo B in the committed config of
+a repo that should not know B exists — and it usually arrives as "mirroring their setup", which is
+not a reason.
+
+**Correspondence is symmetric; mounts are not.** Both sides can have an inbox and use the same
+message convention. Messages never needed a mount to work, so an asymmetric mount costs the exchange
+nothing.
+
+Where neither project depends on the other, prefer no mount over two: read the sibling checkout with
+ordinary file tools and treat its absence as normal.
+
 ## Rules
 
 1. **Never edit another project's notes.** The read-only mount is the guarantee; don't route around it
@@ -72,12 +90,16 @@ mounts: resolution, backlinks and link-checking across wikis are exactly what no
 ## Finding another wiki's inbox
 
 **The receiver declares its own inbox; senders never assume a path.** Each wiki that accepts messages
-carries `meta/interop.md`, readable through any read-only mount:
+carries `meta/interop.md` — read it through a mount if you have one, otherwise straight from the
+sibling checkout; it is plain markdown either way:
 
 | Section  | Declares                                                                           |
 |----------|------------------------------------------------------------------------------------|
 | Inbound  | Where this wiki's inbox is, what it is authoritative for, what messages it accepts |
 | Outbound | Which other wikis this one mounts, and when to consult each                        |
+
+**Outbound applies only to a wiki that actually mounts something.** A wiki that mounts nothing says
+so, with the reason, so the absence reads as a decision rather than an oversight.
 
 **No `meta/interop.md` means no inbox — do not write to that repo.** Accepting messages is an opt-in
 its owner declares, not a default a sender may assume.

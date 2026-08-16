@@ -39,6 +39,9 @@ Mount them as additional servers, with an absolute path and **no** `--allow-writ
 }
 ```
 
+Which project mounts which is not free choice: mount only down the dependency — see *Which way a
+mount points* in `interop.md` beside this file.
+
 `.mcp.json` is committed, so a mount added there is one every clone gets. For a mount that should
 exist only on this machine, use `claude mcp add --scope local` (local is the default scope) — it is
 stored outside the repo.
