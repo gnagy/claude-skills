@@ -30,6 +30,8 @@ machine-local and rebuildable:
 | Path                      | Tracked | What                                                              |
 |---------------------------|---------|-------------------------------------------------------------------|
 | `site/quartz.config.yaml` | **yes** | The whole configuration — the only file worth reviewing           |
+| `site/quartz.pin`         | **yes** | One line: the Quartz commit this project builds against           |
+| `site/README.md`          | **yes** | Project specifics — the port, the registry, how to run it         |
 | `site/.gitignore`         | **yes** | Ignores the two below, and says why                               |
 | `site/.quartz-src/`       | no      | The Quartz clone, its `node_modules`, and a symlink to the config |
 | `site/public/`            | no      | Build output                                                      |
@@ -48,31 +50,41 @@ That file **is** the statement of what is transient — keep the rationale in it
 restating the split anywhere else, where the two can disagree.
 
 Anything project-specific — the dev port, which wikis this one references, how to run the build — goes
-in a tracked `site/README.md`, the same way project-specific wiki rules go in `meta/` notes rather than
-into this skill.
+in that tracked `site/README.md`, the same way project-specific wiki rules go in `meta/` notes rather
+than into this skill. **A project owns its own site**: the pin, the port and the registry are its
+decisions, and it must be able to build with no other checkout of yours present.
 
 ## First-time setup
 
-Quartz publishes **no usable release**: its newest GitHub release is from 2023, and its lone `v5.0.0`
-tag is hundreds of commits behind the `v5` branch and does not build — its plugin installer clones
-repos that ship no `dist/`, then crashes before writing the index it needs. So pin a **commit SHA on
-`v5`**, and re-run the link graph check on every bump, because a branch is not a release.
+Everything below comes from **`quartz-wiki-tools`**, pinned by tag. Nothing is copied into the
+project: a per-repo copy of a shared script is drift waiting to happen.
 
 ```shell
-git clone --branch v5 https://github.com/jackyzha0/quartz.git site/.quartz-src
-git -C site/.quartz-src checkout <pinned-sha>
-ln -s ../quartz.config.yaml site/.quartz-src/quartz.config.yaml
-cd site/.quartz-src && npm install
+echo <pinned-sha> > site/quartz.pin
+npx github:gnagy/quartz-wiki-tools#v0.3.0 bootstrap-quartz
 ```
+
+That clones Quartz at the pinned commit, symlinks the config into the clone, and installs. Idempotent
+— re-running after editing `quartz.pin` is how a Quartz bump is applied.
+
+**Quartz publishes no usable release**, which is why a project pins a commit SHA rather than a tag:
+the newest GitHub release is from 2023, and the lone `v5.0.0` tag is hundreds of commits behind the
+`v5` branch and does not build at all — its plugin installer clones repos that ship no `dist/`, then
+crashes before writing the index it needs. Re-run the link graph check on every bump, because a branch
+is not a release.
 
 The config is symlinked **into** the clone because Quartz reads `quartz.config.yaml` *and*
 `./package.json` from the current working directory — so the working directory has to be Quartz's own,
-and the config has to be reachable from there while still living in `site/` where it is reviewable.
+while the config still lives in `site/` where it is tracked and reviewable.
 
 Copy an existing project's `quartz.config.yaml` as the starting point and change three things: the
 `pageTitle`, the `baseUrl` port, and the `note-properties` field list — **that last one is per wiki**,
 because front-matter vocabularies differ between wikis and a field named there that the wiki does not
 carry simply renders nothing.
+
+**None of this touches the project's own `node_modules`.** Quartz installs into
+`site/.quartz-src/node_modules`, which has its own `package.json`, so npm never walks up to the project
+root — which matters in a repo that already has a frontend build of its own.
 
 ## Build and publish are different modes
 
