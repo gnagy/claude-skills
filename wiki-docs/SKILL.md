@@ -306,3 +306,32 @@ follow whatever the existing notes do.
 `.mcp.json` server config, mounting other projects' wikis, and the skeleton for a wiki that doesn't
 exist yet are in **`setup.md` beside this file**. Read it when `get_workspace_info` finds no server,
 when the `meta/` notes are missing, or when asked to add a wiki to a project.
+
+---
+
+## Rendering the wiki as a site
+
+A wiki is written for agents and for whoever edits it, and **neither is a reader**. A project can
+render its own wiki into a browsable static site — backlinks, graph, search, hover previews — and,
+where several wikis reference each other, into links that actually cross between them.
+
+**The project that owns the wiki builds its own site**, from a `site/` directory in that repo. There
+is no central builder: a wiki always lives inside the repo that owns its subject matter, so anything
+else means submoduling a subdirectory (git cannot) or handing a build host a credential to a repo
+whose markdown is the only part it needs.
+
+Two things worth knowing before reading further, because both come up as questions rather than as
+tasks:
+
+- **Do not gitignore `site/` wholesale.** `quartz.config.yaml` and `site/.gitignore` are tracked; the
+  renderer clone and the build output are not.
+- **A cross-wiki reference is a prefixed markdown link** — `[conventions](otherwiki:meta/conventions.md)`
+  — never a `[[wikilink]]`, for the placeholder reason in
+  [Other wikis](#other-wikis-read-only-mounts). It stays inert in Foam and the editor, and becomes a
+  real link only in the rendered site.
+
+**Read `site.md` beside this file** before setting a site up, changing its configuration, running or
+debugging a build, or making a cross-wiki reference resolve. It covers the pinned renderer, what git
+tracks, build versus publish mode, the link-graph check that verifies the renderer against Foam, the
+cross-wiki resolver and its registry, and the traps — including why a wiki whose home is `README.md`
+serves a 404 at its root.

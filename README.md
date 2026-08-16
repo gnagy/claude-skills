@@ -5,6 +5,7 @@ can share them instead of each growing its own copy.
 
 | Skill             | Use it when                                                           |
 |-------------------|-----------------------------------------------------------------------|
+| `grill-with-wiki` | Stress-testing a plan or design, capturing the outcome into the wiki  |
 | `markdown-remark` | Formatting, linting, or validating markdown; before any bulk reformat |
 | `wiki-docs`       | Reading or editing a Foam wiki through the `foam-wiki` MCP server     |
 
