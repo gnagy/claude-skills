@@ -206,6 +206,14 @@ do not cross wikis; and the registry is duplicated per repo.
   every existing `[[README]]` link intact. Renaming to `index.md` also works but is the bigger change
   — OKF reserves `index.md` as front-matter-free, so a home note carrying classification would have to
   shed it.
+- **A plugin that works as a local path can still fail from its tag.** The two source forms take
+  different code paths: a local path is **symlinked** and loaded as-is, while a git source is
+  **cloned**, then `npm install --ignore-scripts` and — whenever the clone ships no `dist/` —
+  `npm run build` are run inside it. A plain-JavaScript plugin with no build step therefore installs
+  perfectly during development and fails from git with `Missing script: "build"`. The install error is
+  visible, but the *consequence* is not: the build continues, the plugin is simply absent, and every
+  cross-wiki reference is silently left unresolved. **Always rebuild from the tag before relying on
+  it**, and give a no-build plugin a no-op `build` script.
 - **Never point plain remark at a wiki.** Without `remark-wiki-link` it escapes every `[[wikilink]]`,
   which still renders while every backlink and placeholder silently disappears. See the main skill file.
 - **`remove-draft` keys on a `draft:` field, not on `status: draft`.** A wiki using `status` loses
