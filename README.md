@@ -44,13 +44,17 @@ avoids. Pairing it with `--agent universal` is what keeps one copy and one link.
 Verify with `ls -l ~/.claude/skills/`: every entry should be a symlink into `../../.agents/skills/`.
 A real directory there is a copy that will drift.
 
-**Installs are snapshots.** `npx skills update` does not refresh local-path sources, so re-run
-`skills add` after editing a skill — otherwise sessions keep loading the previous version with no
-warning. For a skill you are actively editing, symlink instead so changes are live:
+**Installs are snapshots, and that is the point.** `npx skills update` does not refresh local-path
+sources, so **re-run `skills add` after editing a skill** — that install step is the only thing that
+exposes a change, which is what lets agent jobs keep running against the previous version while a
+skill is being worked on.
 
-```shell
-ln -s "$PWD/<name>" ~/.claude/skills/<name>
-```
+**Do not symlink a skill into `~/.claude/skills/` to get live edits.** It works, and it destroys that
+isolation: every half-finished edit becomes live for every session at once. If a skill needs
+tighter feedback than reinstalling gives, reinstall more often.
+
+A session that has already *invoked* a skill keeps its loaded copy until it is invoked again, so
+verify a change in a fresh session.
 
 ## Writing one
 
