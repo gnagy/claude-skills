@@ -160,8 +160,8 @@ build mode point at a dependency's **dev** base URL, so both wikis have to be se
 
 > ### Confirm what is serving before believing a page
 >
-> **A held port fails in a way that reads as success.** Quartz prints its success line *before* the
-> failure, and exits 0:
+> **A held port fails loudly, and then the failure gets swallowed.** Quartz prints its success line
+> *before* the failure:
 >
 > ```
 > Emitted 617 files to `../public` in 36s
@@ -169,10 +169,24 @@ build mode point at a dependency's **dev** base URL, so both wikis have to be se
 > Port 8101 is already in use. Try a different port with --port <number>
 > ```
 >
-> No wrapper, script or agent harness flags an exit 0 — and **the port still answers**, from whichever
-> server got there first. If that one was started from the same `-d`, it is hot-reloading the same wiki,
-> so it serves your *uncommitted* edits: live, current, correct-looking, and not your build. Every probe
-> returns 200. This is how a site gets reported as verified when nothing was verified.
+> The bare command **exits 1**, honestly. But trimming that output — `| tail`, `| head`, the default
+> reflex for a build this chatty — makes the shell report the *last* stage's status, so the 1 becomes a
+> 0 and nothing flags it. Measured both ways on one run: bare `1`, piped `0`.
+>
+> ```shell
+> node quartz/bootstrap-cli.mjs build … --serve --port 8101 | tail -2
+> echo ${PIPESTATUS[0]}    # bash — the build's own status, not tail's
+> echo $pipestatus[1]      # zsh
+> set -o pipefail          # or make the pipeline fail by itself, in either shell
+> ```
+>
+> **Read it immediately.** Any command in between — an `echo`, a `[` test — resets it, and you get a
+> confident `0` that means nothing.
+>
+> **And the port still answers regardless**, `HTTP 200`, from whichever server got there first. If that
+> one was started from the same `-d`, it is hot-reloading the same wiki, so it serves your
+> *uncommitted* edits: live, current, correct-looking, and not your build. This is how a site gets
+> reported as verified when nothing was verified.
 >
 > Ask who owns the port rather than whether it answers:
 >
