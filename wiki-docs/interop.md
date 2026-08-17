@@ -59,6 +59,12 @@ ordinary file tools and treat its absence as normal.
    and document only what this wiki does differently. Prose conventions decay, so put the parts that
    matter into shared **front-matter schemas** (`.remark/*.schema.json`): a shared vocabulary that
    fails a check is worth more than one that agrees in two documents until it doesn't.
+
+   **`derived-from` inherits mistakes as readily as vocabularies**, so fixing a convention upstream is
+   only half the job — message the wikis that derive from it. One misleading sentence about a project's
+   tooling reached a second wiki purely by inheritance, cost real work there, and was still sitting in
+   the wiki it came from after the derived copy had been fixed. Two wikis carrying the same wrong
+   sentence is not two mistakes; it is one, propagating.
 4. **Wikilinks do not cross wikis.** See below.
 5. **Two wikis that reached the same answer independently are evidence; two that disagree are an open
    question.** Record the disagreement — don't quietly pick a side. Independent corroboration is the
@@ -126,22 +132,49 @@ Filename `YYYY-MM-DD-<sender>-<slug>.md`:
 ---
 from: <sending wiki>
 date: <YYYY-MM-DD>
-kind: correction | contribution | verification-request | drift-notice
 about: <uri in the receiving wiki, if it concerns an existing note>
 evidence: <wiki>:<uri>          # where the reasoning lives — a pointer, never a copy
 ---
 
-What is claimed, and what would settle it.
+What is claimed, what would settle it, and what you want back — if anything.
 ```
 
-`kind` tells the receiver what is being asked. `correction` — the sender can disprove something you
-record. `contribution` — the sender learned a fact your wiki owns. `verification-request` — the sender
-depends on a claim of yours and wants it checked. `drift-notice` — the sender changed something that
-invalidates a claim of yours.
+**Four fields, and no message type.** An earlier version fixed a `kind` vocabulary —
+`correction | contribution | verification-request | drift-notice` — and it did not survive contact:
+across fifteen real messages senders reached for it four times, always for the same value, and
+otherwise wrote their own. The classification never changed what a receiver did, nothing mechanical
+reads these files, and a closed vocabulary no machine enforces is a schema you can only fail. **Say
+what happened in the body, in your own words.**
 
 **Resolving one:** fold it into a real note with its own `verified` entry, citing the message's
 `evidence` in `sources`, then **delete the inbox file**. Deletion is the close, and the resulting note
 is the record — don't build a `resolved/` archive, because the provenance belongs in the note.
 
-No acknowledgement flows back, and none is needed: only one side ever writes each state transition. If
-the sender wants to track that it asked, that is an entry in the sender's own open questions.
+**Re-read the file immediately before folding it, not when you triage it.** A message is a file in a
+working tree that its sender is still editing, and they have no way to know you have started. One was
+rewritten mid-fold in real traffic: the receiver had already folded the old version and written a
+reply. So senders **amend a message in place rather than replacing it with a differently-named
+file** — a rename strands whoever is mid-fold and leaves the superseded copy in history. Stage the
+inbox by explicit path; a `git add` of the directory sweeps in whatever arrived while you worked.
+
+**Record what you handled in `log.md`**, one line under the day's heading, and nowhere else. `log.md`
+is already the wiki's chronological record (see *Open Knowledge Format* in `SKILL.md`), and the
+question *"what has this inbox dealt with?"* gets asked at the start of every session. A tally in the
+inbox `README.md` is the wrong answer — it was tried, and it needed hand-renumbering on every message
+until it went stale.
+
+### Replying
+
+**Reply when the sender needs something back that only you can write** — a decision, a ruling on their
+proposal, an answer they are waiting on. Write it into their inbox like any other message, with
+`evidence` pointing at the note where the decision now lives, so they get something durable to cite
+rather than a claim to copy.
+
+**A reply is never itself replied to.** One round trip is the maximum, which is what keeps this from
+becoming acknowledgement traffic — the failure mode a blanket "never reply" rule was originally
+written to prevent. It prevented the useful half too: in one two-day exchange, five of six inbound
+messages asked for a decision the sender could not make, and answering them was the only way the work
+moved.
+
+**When it is unclear whether an answer is wanted, reply.** An unwanted reply is one file the sender
+deletes; a missing one leaves them blocked, and you cannot see that from here.
