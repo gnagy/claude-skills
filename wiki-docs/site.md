@@ -262,10 +262,13 @@ And **the prefix is a registry key, not a repo name**: it is typed in every refe
 URL, so it may be shorter than the repo it points at.
 
 The resolver is a Quartz transformer, configured **before `crawl-links`**, which would otherwise treat
-the prefixed destination as a relative path inside the wiki being built:
+the prefixed destination as a relative path inside the wiki being built. **The source is the gitignored
+symlink `bootstrap-quartz` creates**, never a git URL: a project depends on the machine's install, not
+on the tool's repository, and a git source would walk straight into the no-`dist/` trap in
+[Traps](#traps) — installing fine while leaving every cross-wiki reference silently unresolved.
 
 ```yaml
-  - source: "github:gnagy/quartz-wiki-resolver#<tag>"
+  - source: "../quartz-wiki-tools"
     enabled: true
     order: 55
     options:

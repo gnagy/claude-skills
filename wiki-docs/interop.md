@@ -70,28 +70,34 @@ ordinary file tools and treat its absence as normal.
    question.** Record the disagreement — don't quietly pick a side. Independent corroboration is the
    main reason to keep the wikis separate at all.
 
-## Cross-wiki references — unresolved
+## Cross-wiki references
 
-There is no good way to reference a note in another wiki. Foam, Obsidian and every other tool resolve
-links **within** a workspace only, and a `<wiki>:<uri>` convention would be a scheme no tool
-understands — a real cost, for a real gap. **Treat this as an open question in the project's wiki, not
-as a settled convention.**
+**Settled, and `site.md` beside this file owns it.** A cross-wiki reference is an ordinary markdown
+link whose destination carries a wiki prefix instead of a scheme —
+`[conventions](otherwiki:meta/conventions.md)` — inert in Foam and in the editor, resolved to a real
+URL at build time by the `cross-wiki-links` transformer that ships with `quartz-wiki-tools`. Read
+*Cross-wiki references* in `site.md` before writing one, for the registry, the prefix rules and the
+resolver's semantics.
 
-> **What not to do:** never write a cross-wiki reference as a `[[wikilink]]`. Foam registers any
-> unresolved `[[…]]` as a placeholder, so it lands in `get_placeholders` permanently and poisons the
-> one signal that means "note worth writing".
+Three rules matter wherever the reference is written, site or no site:
 
-Until it is settled:
+> **Never write one as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]` as a placeholder, so
+> it lands in `get_placeholders` permanently and poisons the one signal that means "note worth
+> writing". A prefixed link carries a scheme, so Foam treats it as external and never counts it.
 
-- **In front matter a prefixed string is already idiomatic** and low-risk, because nothing resolves
-  `sources` entries anyway: `resource: homeit:implementation/hardware/electron-chassis.md`.
-- **In prose, name the wiki and the note in plain text.** It doesn't resolve, but it doesn't pretend to.
+- **Always the full path within the target wiki, never a bare stem.** Basenames collide across wikis —
+  `index.md`, `meta/conventions.md` and `meta/scope.md` exist in every one — so the reference must
+  carry both the wiki's prefix and the path.
+- **In front matter the same prefixed string is idiomatic**, and nothing resolves it either way:
+  `resource: homeit:implementation/hardware/electron-chassis.md`.
 
-Basenames collide across wikis — `index.md`, `meta/conventions.md` and `meta/scope.md` exist in every
-one — so a cross-wiki reference must always carry the wiki's name, never a bare note stem.
+A wiki with no site still writes references this way. They do not resolve until something renders
+them, but they are the form that will, and they cost nothing meanwhile.
 
-If this becomes load-bearing it is the strongest argument for custom tooling over plain read-only
-mounts: resolution, backlinks and link-checking across wikis are exactly what no existing tool provides.
+**What is still genuinely missing is backlinks and link-checking *across* wikis** — resolution is
+solved, those are not. A reference into another wiki is invisible to that wiki, so nothing there knows
+it is depended upon, and `check-link-graph` deliberately treats a schemed destination as external.
+That is the remaining argument for tooling beyond plain read-only mounts.
 
 ## Finding another wiki's inbox
 

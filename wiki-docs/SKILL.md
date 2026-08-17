@@ -192,7 +192,9 @@ Three rules hold whether or not you read further, because breaking any of them i
   with Write/Edit. If something there is wrong, send it a message or go work in that repo.
 - **Never write a cross-wiki reference as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]`
   as a placeholder, so it lands in `get_placeholders` permanently and poisons the one signal that
-  means "note worth writing". Name the wiki and the note in plain prose instead.
+  means "note worth writing". Write a **prefixed markdown link** instead —
+  `[conventions](otherwiki:meta/conventions.md)` — which Foam reads as external and a rendered site
+  resolves. See *Cross-wiki references* in `interop.md`.
 - **Never mount a wiki that depends on yours.** Mounts run one way, down the dependency: the project
   that already depends on the other mounts it, never the reverse — a depended-on project has to build
   and be worked on with no sibling checkout present. Two wikis mounting each other is a cycle, and it
