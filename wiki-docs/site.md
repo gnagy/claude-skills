@@ -89,6 +89,10 @@ machine's tooling install, clears the plugin cache and installs. Idempotent — 
 `quartz.pin` bump or to pick up newly installed tooling. `check-link-graph --version` reports which
 installation is actually running.
 
+Both commands run from **anywhere inside the project** — they walk up for the nearest
+`site/quartz.config.yaml` and print the project they found. Pass `--site` / `--wiki` only to point at
+something other than the project you are standing in; those resolve against the current directory.
+
 **It writes about 300 MB into `site/`**, nearly all of it Quartz's own `node_modules` — which is why
 it writes `site/.gitignore` first if the project has none yet, per
 [What lives in `site/`](#what-lives-in-site-and-what-git-tracks).
