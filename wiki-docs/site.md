@@ -79,6 +79,14 @@ same arrangement as `mdfmt`. **A project never depends on the tool's git reposit
 it names a tool version. If the commands below are missing, the tooling is not installed on this
 machine.
 
+> **Installing it on a machine that hasn't got it** (check with `check-link-graph --version`). It is
+> **not on npm** — it lives at
+> [github.com/gnagy/quartz-wiki-tools](https://github.com/gnagy/quartz-wiki-tools). From a checkout,
+> `bin/install` copies it to `~/.local/lib/quartz-wiki-tools` and puts both CLIs on `~/.local/bin`;
+> that is the only step that exposes a change, so re-run it after editing the tools. `mdfmt` installs
+> the same way from its own repo — see the `markdown-remark` skill. Quartz itself needs **Node ≥ 22**,
+> a version above what the rest of this tooling requires.
+
 ```shell
 echo <pinned-sha> > site/quartz.pin
 bootstrap-quartz
