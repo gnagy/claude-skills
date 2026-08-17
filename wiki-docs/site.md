@@ -56,16 +56,25 @@ decisions, and it must be able to build with no other checkout of yours present.
 
 ## First-time setup
 
-Everything below comes from **`quartz-wiki-tools`**, pinned by tag. Nothing is copied into the
-project: a per-repo copy of a shared script is drift waiting to happen.
+Everything below comes from **`quartz-wiki-tools`**, installed once per machine and on `PATH` — the
+same arrangement as `mdfmt`. **A project never depends on the tool's git repository**, and no file in
+it names a tool version. If the commands below are missing, the tooling is not installed on this
+machine.
 
 ```shell
 echo <pinned-sha> > site/quartz.pin
-npx github:gnagy/quartz-wiki-tools#v0.3.0 bootstrap-quartz
+bootstrap-quartz
 ```
 
-That clones Quartz at the pinned commit, symlinks the config into the clone, and installs. Idempotent
-— re-running after editing `quartz.pin` is how a Quartz bump is applied.
+That clones Quartz at the pinned commit, symlinks the config into the clone, points the project at the
+machine's tooling install, clears the plugin cache and installs. Idempotent — re-run it to apply a
+`quartz.pin` bump or to pick up newly installed tooling. `check-link-graph --version` reports which
+installation is actually running.
+
+> **Quartz never re-resolves an installed plugin.** If `.quartz/plugins/<name>` exists it returns early
+> without comparing what is installed against what is configured, so changing a plugin source is a
+> silent no-op until that directory goes — the build succeeds and quietly keeps the old code. Clearing
+> it is why re-running `bootstrap-quartz` is the one act meaning "take the current tooling".
 
 **Quartz publishes no usable release**, which is why a project pins a commit SHA rather than a tag:
 the newest GitHub release is from 2023, and the lone `v5.0.0` tag is hundreds of commits behind the
@@ -147,8 +156,8 @@ worth failing on.
 > exists, while `foam lint` reports a perfect graph. Unique basenames are **not** sufficient.
 
 Run the check on every Quartz bump, and after any bulk edit. An obligation described in prose is not
-one anybody can discharge — keep it as an executable script, and keep it in `bin/` rather than `site/`,
-because what it verifies is the *wiki's* graph and the site is only the instrument.
+one anybody can discharge, which is why it is an installed command rather than a procedure — and why it
+is not copied into each project, where the copies would drift.
 
 ## Cross-wiki references
 
