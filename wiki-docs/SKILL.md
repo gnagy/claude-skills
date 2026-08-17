@@ -317,6 +317,9 @@ foam list orphans --workspace <wiki-root>
 root; from inside the wiki itself, `--workspace docs/wiki` looks for `docs/wiki/docs/wiki` and the
 `ENOENT` names a doubled path that appears in nothing you typed.
 
+`foam` is `npx -y foam-cli …` on a machine without the global install — several seconds per
+invocation, which is worth `npm install -g foam-cli` if you are running these more than once.
+
 Run the project's markdown check in the same pass — the two cover different link types, so neither
 alone is sufficient. `meta/conventions.md` names the command; conventionally it is an npm script:
 

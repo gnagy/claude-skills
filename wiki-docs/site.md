@@ -63,6 +63,15 @@ in that tracked `site/README.md`, the same way project-specific wiki rules go in
 than into this skill. **A project owns its own site**: the pin, the port and the registry are its
 decisions, and it must be able to build with no other checkout of yours present.
 
+> **Record the invariant, not the counts.** *"This wiki has 10 placeholders at 19 call sites, and all
+> 19 are expected"* is falsified by deleting one stale `[[link]]` in an unrelated note, and it cannot
+> be refreshed by hand: `foam list placeholders` and `check-link-graph` count different things — 10
+> placeholders across 21 reference lines versus 19 call sites, for one real wiki in one state — so the
+> only way to restate the numbers is to run the check and copy from it, which is what the sentence
+> claimed to be documenting. Write the property instead: *every unresolved link is expected to be a
+> placeholder; the check reports the counts.* Same rule as a wiki note not carrying counts of the
+> wiki's own contents, one file further out.
+
 ## First-time setup
 
 Everything below comes from **`quartz-wiki-tools`**, installed once per machine and on `PATH` — the
@@ -83,6 +92,12 @@ installation is actually running.
 **It writes about 300 MB into `site/`**, nearly all of it Quartz's own `node_modules` — which is why
 it writes `site/.gitignore` first if the project has none yet, per
 [What lives in `site/`](#what-lives-in-site-and-what-git-tracks).
+
+**A passing build is not evidence the setup is complete.** The `quartz-wiki-tools` symlink is only
+load-bearing when the config sources a plugin from it, so a wiki with no cross-wiki references builds
+and passes the link graph check with the symlink missing entirely — observed on a 289-page site whose
+`site/` had been populated from another checkout. Run `bootstrap-quartz` because the project has not
+run it, not because something broke.
 
 > **Quartz never re-resolves an installed plugin.** If `.quartz/plugins/<name>` exists it returns early
 > without comparing what is installed against what is configured, so changing a plugin source is a
@@ -139,6 +154,32 @@ symlink lives inside the untracked clone and is not reproducible from the repo.
 Give each wiki on a machine its own port pair, and record it in `site/README.md`: cross-wiki links in
 build mode point at a dependency's **dev** base URL, so both wikis have to be servable at once.
 
+> ### Confirm what is serving before believing a page
+>
+> **A held port fails in a way that reads as success.** Quartz prints its success line *before* the
+> failure, and exits 0:
+>
+> ```
+> Emitted 617 files to `../public` in 36s
+> Started a Quartz server listening at http://localhost:8101
+> Port 8101 is already in use. Try a different port with --port <number>
+> ```
+>
+> No wrapper, script or agent harness flags an exit 0 — and **the port still answers**, from whichever
+> server got there first. If that one was started from the same `-d`, it is hot-reloading the same wiki,
+> so it serves your *uncommitted* edits: live, current, correct-looking, and not your build. Every probe
+> returns 200. This is how a site gets reported as verified when nothing was verified.
+>
+> Ask who owns the port rather than whether it answers:
+>
+> ```shell
+> lsof -nP -iTCP:8101 -sTCP:LISTEN
+> ps -o lstart=,command= -p <pid>     # started before your build = not your server
+> ```
+>
+> Same class as the box above, one level up: that one is about reading stale *HTML*, this is about
+> reading a stale *server*, and this one is worse because nothing about the page looks old.
+
 ## The link graph check
 
 **Foam owns the link graph. Quartz is a renderer that must be verified to agree with it, before any
@@ -171,6 +212,14 @@ worth failing on.
 Run the check on every Quartz bump, and after any bulk edit. An obligation described in prose is not
 one anybody can discharge, which is why it is an installed command rather than a procedure — and why it
 is not copied into each project, where the copies would drift.
+
+**It is safe to run while serving.** `check-link-graph` builds into a temporary directory and discards
+it, so `site/public` is never touched — which matters because its build is a plain one, and a plain
+build over a served directory is the trap in *Traps* below. It used to build straight into `public/`,
+reverting every cross-wiki link there to its raw `prefix:path.md` form while reporting `GO`, since
+schemed destinations are external and out of this check's scope by design. If a run ever appears to
+break cross-wiki links, check the version — that behaviour was removed, not documented.
+`--skip-build` inspects `site/public` as it stands, which is the only reason to use it.
 
 ## Cross-wiki references
 
