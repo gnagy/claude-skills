@@ -18,6 +18,10 @@ config, and data files that are the executable truth.
 > in the wiki, the folder layout, the front-matter vocabularies — is defined in the wiki's own `meta/`
 > notes. Read those, don't assume; and when this skill and a `meta/` note disagree, the `meta/` note
 > wins.
+>
+> **A `meta/` note is authoritative about its project, not about the machine.** It settles what this
+> wiki does; it cannot settle what tools exist. A note saying a project has no formatter pipeline
+> wired up is not a note saying no formatter is installed — see [Markdown tooling](#markdown-tooling-what-a-wiki-adds).
 
 ---
 
@@ -77,7 +81,7 @@ exist. Reference: <https://docs.foam.md/tools/cli/mcp/>
 | `search_resources`                         | Default entry point for a topic                                         |
 | `list_tags` → `search_by_tag`              | In that order — see the vocabulary before coining a near-duplicate      |
 | `search_by_property`                       | By front-matter axis, e.g. everything still `draft`                     |
-| `list_resources`                           | Enumerating by `type` or `tag` when you already know the axis           |
+| `list_resources`                           | Enumerating by `tag` — **not** by front-matter `type`, see below        |
 | `read_resource`                            | The note itself, by URI relative to the wiki root                       |
 | `get_outline`                              | Scanning a long note before committing to a full `read_resource`        |
 | `get_resource`                             | Front matter alone, without the body                                    |
@@ -87,6 +91,13 @@ exist. Reference: <https://docs.foam.md/tools/cli/mcp/>
 | `get_orphans` / `get_deadends`             | Under-connected notes — a navigation gap, or a missing index entry      |
 | `get_graph_summary`                        | Graph-level stats                                                       |
 | `list_queries` / `get_query` / `run_query` | Saved Foam queries, if the workspace defines any                        |
+
+> **`list_resources`'s `type` is not your front matter.** It filters Foam's own *resource kind* —
+> `note` versus `attachment` — so every markdown note is reported as `type: note` whatever its front
+> matter says, and `list_resources(type: "adr")` comes back `[]` with no error. An empty result reads
+> as *"no such notes exist"* rather than *"wrong tool"*, which is what makes this worth a warning.
+> **Use `search_by_property(property: "type", value: …)` for the front-matter axis.** Filtering by
+> `tag` behaves as you'd expect, because tags are Foam-native.
 
 ### Writes
 
@@ -126,12 +137,19 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   outside the wiki.
 - **Link liberally**, including to notes that don't exist yet — an unresolved `[[link]]` is a valid
   to-do, discoverable via `get_placeholders`.
+- **Closing a placeholder is two operations.** Writing the note resolves the `[[link]]`, but the prose
+  around it still says the note doesn't exist — *"`[[backups]]` is still unwritten"*, *"…and the
+  reason `[[backups]]` needs writing"*. Keep the backlinkers `get_placeholders` reported **before** you
+  created it — they are gone from that list afterwards — then grep them for
+  `unwritten|not yet written|needs writing|can now be written` and fix the sentences. A link resolving
+  is not the same as a sentence becoming true, and nothing connects the two.
 - **Never duplicate an authoritative source** into the wiki — no config file contents, no data rows.
   Link to the path and explain the shape and the reasoning instead. Duplicated facts go stale silently.
 - **Record open questions** rather than guessing. A note that says "these two sources disagree, unverified"
   is more useful than one that quietly picks a side.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
 - Add new notes to the home index (`index.md`) or the relevant MoC — otherwise they're orphans.
+  `foam list orphans` is the check; run it rather than trusting that you remembered.
 - Use `move_resource` / `rename_tag` for renames so links and tags stay intact.
 - **Always format markdown tables.** Never leave a ragged `|---|---|` table behind.
 - No secrets, ever — the wiki is committed.
@@ -240,6 +258,13 @@ not the edges.
 skill for the toolchain itself: config, plugins, hazards, and how to verify a formatter before it
 writes. Check `meta/conventions.md` for whether this project has it wired up and under what commands.
 
+> **`mdfmt` is a standalone CLI, not a project pipeline.** It carries its own config and plugins, so it
+> formats any directory without that project installing anything — it works in a repo with no
+> `node_modules`, no `.remarkrc` and no npm script. **"No remark pipeline is wired up here" and "no
+> formatter is available" are different facts**, and a `meta/` note stating the first is routinely read
+> as the second. Check `mdfmt --version` before hand-aligning a table or writing a script to do it; if
+> it isn't on `PATH`, say so rather than reinventing it.
+
 Everything below is what a *wiki* adds on top of that.
 
 > ### Wikilinks are the hazard
@@ -287,6 +312,10 @@ foam lint --workspace <wiki-root>            # broken links, stale link definiti
 foam list placeholders --workspace <wiki-root>
 foam list orphans --workspace <wiki-root>
 ```
+
+**`--workspace` resolves against the current directory, not the repo root.** Run these from the repo
+root; from inside the wiki itself, `--workspace docs/wiki` looks for `docs/wiki/docs/wiki` and the
+`ENOENT` names a doubled path that appears in nothing you typed.
 
 Run the project's markdown check in the same pass — the two cover different link types, so neither
 alone is sufficient. `meta/conventions.md` names the command; conventionally it is an npm script:

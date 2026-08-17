@@ -24,27 +24,36 @@ modes](#build-and-publish-are-different-modes).
 
 ## What lives in `site/`, and what git tracks
 
-**Do not gitignore `site/` wholesale.** Two of its four entries are the site; the other two are
-machine-local and rebuildable:
+**Do not gitignore `site/` wholesale.** Four of its entries are the site and belong in the repo; the
+other three are machine-local, rebuildable, and about 300 MB:
 
 | Path                      | Tracked | What                                                              |
 |---------------------------|---------|-------------------------------------------------------------------|
 | `site/quartz.config.yaml` | **yes** | The whole configuration — the only file worth reviewing           |
 | `site/quartz.pin`         | **yes** | One line: the Quartz commit this project builds against           |
 | `site/README.md`          | **yes** | Project specifics — the port, the registry, how to run it         |
-| `site/.gitignore`         | **yes** | Ignores the two below, and says why                               |
+| `site/.gitignore`         | **yes** | Ignores the three below, and says why                             |
 | `site/.quartz-src/`       | no      | The Quartz clone, its `node_modules`, and a symlink to the config |
 | `site/public/`            | no      | Build output                                                      |
+| `site/quartz-wiki-tools`  | no      | Symlink to this machine's tooling install                         |
 
 ```gitignore
-# Quartz itself is cloned at a pinned commit by the build, never vendored.
-# Nothing of it belongs in this repo.
+# Quartz itself is cloned at the commit in quartz.pin, never vendored — see
+# README.md here. Nothing of it belongs in this repo, including its node_modules
+# (~250 MB, entirely separate from the project's own).
 .quartz-src/
 
-# Build output. Machine-local and rebuildable; in publish mode the last one is
-# the release record, which is still not something git should carry.
+# Build output. Disposable: rebuild it with the serve command in README.md.
 public/
+
+# Symlink to the copy of quartz-wiki-tools installed on this machine, created
+# by bootstrap-quartz. Machine-local by definition.
+quartz-wiki-tools
 ```
+
+**`bootstrap-quartz` writes exactly that file** when `site/.gitignore` does not already exist, before
+it clones anything — so the tree is never both huge and untracked. It never overwrites one that does:
+the project owns the file from then on. Commit it.
 
 That file **is** the statement of what is transient — keep the rationale in its comments rather than
 restating the split anywhere else, where the two can disagree.
@@ -70,6 +79,10 @@ That clones Quartz at the pinned commit, symlinks the config into the clone, poi
 machine's tooling install, clears the plugin cache and installs. Idempotent — re-run it to apply a
 `quartz.pin` bump or to pick up newly installed tooling. `check-link-graph --version` reports which
 installation is actually running.
+
+**It writes about 300 MB into `site/`**, nearly all of it Quartz's own `node_modules` — which is why
+it writes `site/.gitignore` first if the project has none yet, per
+[What lives in `site/`](#what-lives-in-site-and-what-git-tracks).
 
 > **Quartz never re-resolves an installed plugin.** If `.quartz/plugins/<name>` exists it returns early
 > without comparing what is installed against what is configured, so changing a plugin source is a

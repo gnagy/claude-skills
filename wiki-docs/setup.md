@@ -82,3 +82,57 @@ and write down contradictions between sources as open questions rather than reso
 
 Add `meta/interop.md` only if the project actually exchanges knowledge with another wiki — see
 `interop.md` beside this file for what it must declare.
+
+## The front-matter schema
+
+**A vocabulary written only in `meta/conventions.md` is a vocabulary that drifts.** Put it in a JSON
+Schema at the same time you agree it, so a violation fails a check instead of surviving until someone
+reads all the notes. The mechanics — glob mapping, where it is wired, running it — belong to the
+`markdown-remark` skill; what follows is the wiki-shaped starting point, saved as `.remark/note.json`
+and referenced from `markdown-toolbox.config.mjs`.
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "type", "description", "status"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "enum": ["note", "moc", "adr", "reference"] },
+    "description": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["draft", "stable", "deprecated"] },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["resource"],
+        "properties": {
+          "resource": { "type": "string", "pattern": "^([a-z][a-z0-9-]*:|https?://)" },
+          "at": { "type": "string", "format": "date" }
+        }
+      }
+    }
+  }
+}
+```
+
+Four things in there are worth keeping whatever else the project changes:
+
+- **`additionalProperties: false`** — the only thing that stops an invented field from looking
+  official. A vocabulary that accepts anything is not a vocabulary.
+- **The `sources[].resource` pattern.** OKF requires `sources` to be mappings but says nothing about
+  what a `resource` looks like, so `minLength: 1` accepts *"UniFi controller via unifi-network MCP,
+  queried 2026-08-11"* — prose in a machine-readable field, which defeats the repo→note direction the
+  field exists for. **The scope descriptors are per project; the shape is not.** Fix the shape here —
+  a lowercase scheme prefix (`repo:`, `skill:`, `<wiki>:`) or a URL — and let
+  `meta/conventions.md` declare which prefixes this project actually uses.
+- **`type` as a closed `enum`**, matching whatever `meta/conventions.md` lists. Extend both together
+  or neither.
+- **`status` as OKF defines it** — `draft` · `stable` · `deprecated`, nothing else.
+
+**Map several schemas to disjoint globs** when folders have genuinely different rules — it is the only
+way to require a field in one folder and forbid it in another. Two rules that a schema cannot reach,
+because JSON Schema never sees the body: `title` matching the H1, and anything asserting a
+front-matter field against something in the prose. Those stay conventions until a check exists.
