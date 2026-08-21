@@ -154,8 +154,8 @@ Read `meta/conventions.md` first. Beyond whatever it says:
 - **Always format markdown tables.** Never leave a ragged `|---|---|` table behind.
 - No secrets, ever — the wiki is committed.
 
-Tables are written as aligned rectangles, not left ragged — see the `markdown-remark` skill for the
-mechanics and `meta/conventions.md` for which delimiter style this project uses.
+Tables are written as aligned rectangles, not left ragged — `awt fmt` does it, and
+`meta/conventions.md` says which delimiter style this project uses.
 
 ### No display-text overrides
 
@@ -253,19 +253,21 @@ rewriting, backlinks, placeholders and Obsidian compatibility. Generic OKF consu
 not the edges.
 ```
 
-## Markdown tooling: what a wiki adds
+## Markdown tooling: `awt`
 
-**Foam owns the link graph; remark owns the documents.** They don't overlap — Foam has no formatter
-(`foam lint` only checks links) and remark has no concept of backlinks. Load the **`markdown-remark`**
-skill for the toolchain itself: config, plugins, hazards, and how to verify a formatter before it
-writes. Check `meta/conventions.md` for whether this project has it wired up and under what commands.
+**Format a wiki with `awt fmt`.** It is the toolbox's own formatter, and it is wikilink-aware — which
+is the whole reason not to reach for anything else here (see the hazard below).
 
-> **`mdfmt` is a standalone CLI, not a project pipeline.** It carries its own config and plugins, so it
+> **`awt` is a standalone CLI, not a project pipeline.** It carries its own config and plugins, so it
 > formats any directory without that project installing anything — it works in a repo with no
 > `node_modules`, no `.remarkrc` and no npm script. **"No remark pipeline is wired up here" and "no
 > formatter is available" are different facts**, and a `meta/` note stating the first is routinely read
-> as the second. Check `mdfmt --version` before hand-aligning a table or writing a script to do it; if
+> as the second. Check `awt --version` before hand-aligning a table or writing a script to do it; if
 > it isn't on `PATH`, say so rather than reinventing it.
+
+**Reach for `markdown-remark` only when the target is not a wiki** — a README, a `CLAUDE.md`, a docs
+tree with no link graph in it. That skill owns the remark toolchain itself: config, plugins, and how to
+verify a formatter before it writes. For wiki work, `awt` is the tool and this file is the authority.
 
 Everything below is what a *wiki* adds on top of that.
 
@@ -287,7 +289,7 @@ here specifically, because a wiki's entire value is the edges. Practical consequ
   show you a destroyed graph.
 - **`![[embeds]]` need one more check.** The plugin tokenises `[[…]]` only, so the `!`-prefixed
   transclusion form is *not* covered by it — plain remark escapes it to `!\[\[note]]`, which stops
-  being an embed in both Foam and Obsidian. `mdfmt` repairs that on the way out; any other pipeline
+  being an embed in both Foam and Obsidian. `awt fmt` repairs that on the way out; any other pipeline
   needs its own post-pass. Grep for `'!\[\[' ` separately after a bulk run, since the wikilink count
   above is unchanged by it.
 - **An embed is invisible to remark either way.** Even repaired it stays a text node, not a

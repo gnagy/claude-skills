@@ -87,9 +87,8 @@ Add `meta/interop.md` only if the project actually exchanges knowledge with anot
 
 **A vocabulary written only in `meta/conventions.md` is a vocabulary that drifts.** Put it in a JSON
 Schema at the same time you agree it, so a violation fails a check instead of surviving until someone
-reads all the notes. The mechanics — glob mapping, where it is wired, running it — belong to the
-`markdown-remark` skill; what follows is the wiki-shaped starting point, saved as `.remark/note.json`
-and referenced from `markdown-toolbox.config.mjs`.
+reads all the notes. What follows is the wiki-shaped starting point, saved as `.remark/note.json` and
+referenced from `awt.config.mjs`.
 
 ```json
 {

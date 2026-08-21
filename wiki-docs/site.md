@@ -75,7 +75,7 @@ decisions, and it must be able to build with no other checkout of yours present.
 ## First-time setup
 
 Everything below comes from **`quartz-wiki-tools`**, installed once per machine and on `PATH` — the
-same arrangement as `mdfmt`. **A project never depends on the tool's git repository**, and no file in
+same arrangement as `awt`. **A project never depends on the tool's git repository**, and no file in
 it names a tool version. If the commands below are missing, the tooling is not installed on this
 machine.
 
@@ -83,8 +83,8 @@ machine.
 > **not on npm** — it lives at
 > [github.com/gnagy/quartz-wiki-tools](https://github.com/gnagy/quartz-wiki-tools). From a checkout,
 > `bin/install` copies it to `~/.local/lib/quartz-wiki-tools` and puts both CLIs on `~/.local/bin`;
-> that is the only step that exposes a change, so re-run it after editing the tools. `mdfmt` installs
-> the same way from its own repo — see the `markdown-remark` skill. Quartz itself needs **Node ≥ 22**,
+> that is the only step that exposes a change, so re-run it after editing the tools. `awt` installs
+> the same way from its own repo. Quartz itself needs **Node ≥ 22**,
 > a version above what the rest of this tooling requires.
 
 ```shell
@@ -260,9 +260,9 @@ See [conventions](shelton-dios:meta/conventions.md).
 
 **Never a `[[wikilink]]`** — Foam registers any unresolved `[[…]]` as a placeholder, so every
 cross-wiki reference would land permanently in `get_placeholders` and poison the one signal that means
-*a note worth writing*. A prefixed link is external to Foam, an ordinary destination to remark and
-`mdfmt`, and a resolvable reference to the renderer. Verified: a wiki with prefixed references still
-reports zero placeholders and zero lint errors, and `mdfmt` leaves the destinations untouched.
+*a note worth writing*. A prefixed link is external to Foam, an ordinary destination to
+`awt fmt`, and a resolvable reference to the renderer. Verified: a wiki with prefixed references still
+reports zero placeholders and zero lint errors, and the formatter leaves the destinations untouched.
 
 Two rules that are the inverse of the intra-wiki ones. **Always a full path within the target wiki,
 never a bare stem** — uniqueness is guaranteed inside one wiki and guaranteed absent across several.
