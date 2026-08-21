@@ -3,11 +3,20 @@
 Reusable [Claude Code](https://claude.com/claude-code) skills, kept in one place so several projects
 can share them instead of each growing its own copy.
 
-| Skill             | Use it when                                                           |
-|-------------------|-----------------------------------------------------------------------|
-| `grill-with-wiki` | Stress-testing a plan or design, capturing the outcome into the wiki  |
-| `markdown-remark` | Formatting, linting, or validating markdown; before any bulk reformat |
-| `wiki-docs`       | Reading or editing a Foam wiki through the `foam-wiki` MCP server     |
+| Skill               | Use it when                                                           |
+|---------------------|-----------------------------------------------------------------------|
+| `bro`               | The last message needs saying again without the jargon                |
+| `grill-with-wiki`   | Stress-testing a plan or design, capturing the outcome into the wiki  |
+| `markdown-remark`   | Formatting, linting, or validating markdown; before any bulk reformat |
+| `technical-writing` | Writing or reviewing a doc, RFC, wiki note, PR description or commit  |
+| `unslop`            | Stripping the AI tells out of prose that is about to ship             |
+| `wiki-docs`         | Reading or editing a Foam wiki through the `foam-wiki` MCP server     |
+
+`bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they run on
+`/bro` and `/technical-writing` and never load themselves. `bro` restates the previous message, which
+only makes sense when a human asks; `technical-writing` is a deliberate review pass whose body is too
+large to fire on every doc-touching turn. `unslop` stays model-invocable, because it is the catalog
+the others defer to.
 
 ## Installing
 
@@ -69,6 +78,11 @@ description: Use this skill when … Covers … Also read it before …
 ---
 ```
 
+**Quote the description if it contains a colon followed by a space.** `description: A layered
+standard: Diátaxis for …` is invalid YAML, and `skills add` **skips the skill with a warning and
+carries on**, so a bulk install reports "Installed 5 skills" and the sixth is simply absent. Wrap the
+value in single quotes. Check the count the installer prints against the number of skill directories.
+
 Two conventions hold across these skills:
 
 - **Skills are project-agnostic.** Anything specific to one project belongs in that project's own
@@ -76,6 +90,17 @@ Two conventions hold across these skills:
   wiki's `meta/` notes define what goes in *this* one, and the `meta/` notes win on conflict.
 - **Related skills cross-reference by name and say who owns what.** Foam owns the link graph; remark
   owns the documents. Without that, two skills quietly give contradictory advice about the same file.
+- **A manual-only skill cannot be loaded by another skill.** Claude refuses to invoke anything marked
+  `disable-model-invocation` and asks the user to run it instead, so **dependencies run one way**: a
+  manual skill may load a model-invocable one, never the reverse. `technical-writing` loads `unslop`;
+  `unslop` can only ask for `/technical-writing`. Keep the shared catalog model-invocable and the
+  deliberate passes manual, or the two ends cannot reach each other.
+
+  Marking the field `false` is the same as omitting it. Omit it.
+
+Skills adapted from someone else's carry a **Lineage** section at the end: where they came from, the
+licence, and what was changed. `bro`, `technical-writing`, `unslop` and `grill-with-wiki` all have
+one.
 
 Prefer writing down the failure modes over the happy path. The parts of these skills that earn their
 place are the hazards — what silently corrupts a document, and how to verify a change before it
