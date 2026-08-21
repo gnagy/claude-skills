@@ -8,11 +8,11 @@ knowledge.** It belongs in the wiki's own `meta/interop.md`, not here. Read that
 
 ## What a mount is
 
-A project may mount other projects' wikis as additional read-only foam servers, conventionally named
-`foam-<project>`. Each mount adds 18 read tools; `--allow-writes` adds exactly 7 more, so a mount
+A project may mount other projects' wikis as additional read-only servers, conventionally named after
+the project. Each mount adds five read tools; `--allow-writes` adds seven more, so a mount
 without it has no write surface at all rather than an unused one.
 
-`get_workspace_info` reports `root_dir` and `read_only`, so confirm which server you are talking to
+`workspace_info` reports `root` and `allowWrites`, so confirm which server you are talking to
 before writing, rather than inferring it from the server's name. To add a mount, see `setup.md`
 beside this file.
 
@@ -129,7 +129,7 @@ a fact. The receiver has to *convert* it into a real note before it counts as kn
 
 **The inbox must not be gitignored.** An unhandled message is an untracked file, which is what makes
 it appear in `git status` next time that repo is opened. Git is the notifier, not the transport:
-nothing needs committing or pushing for a message to arrive, and foam-cli watches the filesystem, so
+nothing needs committing or pushing for a message to arrive, and the index is recomputed per call, so
 mounted wikis reflect each other's uncommitted edits live.
 
 Filename `YYYY-MM-DD-<sender>-<slug>.md`:

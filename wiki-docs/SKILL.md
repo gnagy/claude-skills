@@ -1,6 +1,6 @@
 ---
 name: wiki-docs
-description: Use this skill to read, search, or edit the project wiki — a Foam markdown knowledge base of `[[wikilink]]`-connected notes served by the foam-wiki MCP server, usually an Open Knowledge Format (OKF) bundle. Look something up here before changing it, and capture what you learn as linked notes. Also covers bootstrapping a wiki, and other projects' wikis mounted read-only alongside.
+description: Use this skill to read, search, or edit the project wiki — a markdown knowledge base of `[[wikilink]]`-connected notes served by the agent-wiki-toolbox MCP server (or, in older projects, foam-wiki), usually an Open Knowledge Format (OKF) bundle. Look something up here before changing it, and capture what you learn as linked notes. Also covers bootstrapping a wiki, and other projects' wikis mounted read-only alongside.
 ---
 
 # Wiki Docs
@@ -8,11 +8,17 @@ description: Use this skill to read, search, or edit the project wiki — a Foam
 Use this skill when you need to **look up how or why something works before changing it**, or when
 asked to read or update the project wiki.
 
-The wiki is a [Foam](https://docs.foam.md/) workspace: plain markdown notes with YAML front matter,
-connected by `[[wikilinks]]`, served to agents through the `foam-wiki` MCP server — and usually also
-an **[OKF](#open-knowledge-format-okf) bundle**. It holds the **narrative** knowledge — how the
-pieces fit together, the decisions behind them, and the open questions — as opposed to the code,
-config, and data files that are the executable truth.
+The wiki is plain markdown notes with YAML front matter, connected by `[[wikilinks]]`, served to
+agents through the **`agent-wiki-toolbox` MCP server** — and usually also an
+**[OKF](#open-knowledge-format-okf) bundle**. It holds the **narrative** knowledge — how the pieces
+fit together, the decisions behind them, and the open questions — as opposed to the code, config, and
+data files that are the executable truth.
+
+> **A project may still mount `foam-wiki` instead, or as well.** Foam is the older graph, and a
+> project part-way through the switch runs both: the toolbox is what you use, Foam is kept as an
+> independent check on it. The tool names differ — `search` versus `search_resources`,
+> `workspace_info` versus `get_workspace_info` — so **list the tools you actually have before
+> reaching for one from this file.**
 
 > **This skill is project-agnostic on purpose.** Everything specific to *this* project — what belongs
 > in the wiki, the folder layout, the front-matter vocabularies — is defined in the wiki's own `meta/`
@@ -27,13 +33,13 @@ config, and data files that are the executable truth.
 
 ## Orient first
 
-The wiki root is whatever `.mcp.json` passes as `--workspace` to the `foam-wiki` server; by convention
-`docs/wiki/`. All URIs below are relative to that root.
+The wiki root is whatever `.mcp.json` passes as `--workspace`; by convention `docs/wiki/`. All paths
+below are relative to that root.
 
-**There may be more than one foam server.** A project can mount other projects' wikis read-only
+**There may be more than one wiki server.** A project can mount other projects' wikis read-only
 alongside its own — see [Other wikis](#other-wikis-read-only-mounts). Exactly one is writable: yours.
-`get_workspace_info` reports `root_dir` and `read_only`, so confirm which server you are talking to
-before writing, rather than inferring it from the server's name.
+`workspace_info` reports `root` and `allowWrites`, so confirm which server you are talking to before
+writing, rather than inferring it from the server's name.
 
 Three notes define how this particular wiki works, and a fourth appears only in projects that exchange
 knowledge with other wikis. Read them before writing anything:
@@ -45,10 +51,8 @@ knowledge with other wikis. Read them before writing anything:
 | `meta/scope.md`             | What belongs in the wiki vs. which files in the repo own a fact instead |
 | `meta/interop.md`           | *Only if present* — see [Other wikis](#other-wikis-read-only-mounts)    |
 
-```
-read_resource(uri: "index.md")
-read_resource(uri: "meta/conventions.md")
-```
+**Read them with your own `Read` tool.** There is no tool here for opening a file, deliberately: a
+tool earns a place on this surface only if it answers something a file cannot.
 
 If those notes don't exist, read `setup.md` beside this file.
 
@@ -68,64 +72,82 @@ tags: [<tag>, <tag>]
 
 ---
 
-## foam-wiki MCP tools
+## The MCP tools
 
 Prefer these over `grep`/`find` for wiki lookups — they understand the link graph and front matter.
 The server ships a description and schema for every tool, so this section carries only what those
-can't: which tool to reach for, in what order, and the rules that involve tools foam doesn't know
-exist. Reference: <https://docs.foam.md/tools/cli/mcp/>
+cannot: which tool to reach for, in what order, and the rules that involve things the server does not
+know about.
 
-| Tool                                       | Reach for it when                                                       |
-|--------------------------------------------|-------------------------------------------------------------------------|
-| `get_workspace_info`                       | First call — is the server live, and is `root_dir` the wiki you mean    |
-| `search_resources`                         | Default entry point for a topic                                         |
-| `list_tags` → `search_by_tag`              | In that order — see the vocabulary before coining a near-duplicate      |
-| `search_by_property`                       | By front-matter axis, e.g. everything still `draft`                     |
-| `list_resources`                           | Enumerating by `tag` — **not** by front-matter `type`, see below        |
-| `read_resource`                            | The note itself, by URI relative to the wiki root                       |
-| `get_outline`                              | Scanning a long note before committing to a full `read_resource`        |
-| `get_resource`                             | Front matter alone, without the body                                    |
-| `get_connections`                          | Widening from one hit to its neighbours — the highest-yield second call |
-| `traverse_graph`                           | Mapping a whole topic, multi-hop                                        |
-| `get_placeholders`                         | The backlog: links pointing at notes worth writing                      |
-| `get_orphans` / `get_deadends`             | Under-connected notes — a navigation gap, or a missing index entry      |
-| `get_graph_summary`                        | Graph-level stats                                                       |
-| `list_queries` / `get_query` / `run_query` | Saved Foam queries, if the workspace defines any                        |
+**The surface is small on purpose.** A tool is here only if it answers something that cannot be
+answered by opening a file — so there is no tool for reading a note, listing its headings or writing
+prose into it. Your own `Read`, `Write` and `Edit` do those, and better.
 
-> **`list_resources`'s `type` is not your front matter.** It filters Foam's own *resource kind* —
-> `note` versus `attachment` — so every markdown note is reported as `type: note` whatever its front
-> matter says, and `list_resources(type: "adr")` comes back `[]` with no error. An empty result reads
-> as *"no such notes exist"* rather than *"wrong tool"*, which is what makes this worth a warning.
-> **Use `search_by_property(property: "type", value: …)` for the front-matter axis.** Filtering by
-> `tag` behaves as you'd expect, because tags are Foam-native.
+| Tool             | Reach for it when                                                                |
+|------------------|----------------------------------------------------------------------------------|
+| `workspace_info` | First call — is the server live, is `root` the wiki you mean, may you write      |
+| `search`         | Default entry point. Note **bodies**, titles, front matter and tags, in one call |
+| `connections`    | Widening from one hit to its neighbours — the highest-yield second call          |
+| `resolve`        | What a link points at; **and what else matched**, when it is ambiguous           |
+| `check`          | Is the graph healthy — every problem, plus the placeholder backlog, in one call  |
+
+`search` takes a plain string (case-insensitive) or `/regex/flags`, and filters by `tag`, `type`,
+`area` and `topic`. `workspace_info` returns the **whole tag vocabulary with counts**, which is what
+to look at before coining a tag that already nearly exists.
+
+`check` is the one that replaces four separate questions. It returns:
+
+| In `check`     | What it means                                                                                                  |
+|----------------|----------------------------------------------------------------------------------------------------------------|
+| `problems`     | Real defects: **ambiguous links**, broken section anchors, broken relative links, and a `[[` that never closed |
+| `placeholders` | **The backlog, not a defect** — a `[[stem]]` naming a note worth writing                                       |
+| `orphans`      | Notes with no links either way                                                                                 |
+| `deadends`     | Notes with **no way out** — you can reach them and not leave                                                   |
+| `unreferenced` | Notes nothing links to; reachable by search and nothing else                                                   |
+
+> **An ambiguous link is an error, not a guess.** Two notes sharing a basename means a `[[stem]]`
+> naming either one resolves to neither, and the rendered site 404s while nothing warns. `resolve`
+> names the candidates; the fix is a folder segment in the link or a rename, and it is worth doing at
+> once.
 
 ### Writes
 
-Available only when the server runs with `--allow-writes`.
+Available only when the server runs with `--allow-writes`. All seven are graph-affecting: they are the
+edits that corrupt something when done by hand.
 
-- **`move_resource`, never `mv`.** It rewrites every inbound wikilink; a plain move silently breaks
-  the graph. Likewise **`rename_tag`** rather than `sed` — it updates every note that carries the tag.
-- **`update_resource` overwrites.** Passing `content` replaces the **whole file**, not a section, and
-  `properties` merges front matter only while `merge_properties` is true — `false` replaces it
-  wholesale. For a prose edit inside a note, use the normal Edit tool instead.
-- **`add_tags` / `remove_tags`** for tags on one note; **`create_resource` / `delete_resource`** for
-  whole notes.
+| Tool                               | Instead of                                                |
+|------------------------------------|-----------------------------------------------------------|
+| `rename` · `move`                  | `mv`, which silently breaks every inbound link            |
+| `delete`                           | `rm`, which leaves nothing to tell you what pointed at it |
+| `split_by_heading` · `merge_files` | Re-emitting both documents as tokens                      |
+| `rename_tag`                       | `sed`, which cannot tell front matter from prose          |
+| `build_listing`                    | Hand-maintaining the notes table in `index.md`            |
 
----
+**Ordinary prose edits are yours**, with `Write` and `Edit`. The index is recomputed on the next call,
+so nothing has to be told an edit happened.
 
-## Lookup workflow
+Three things about how they behave, all of which change how you use them:
 
-1. **`get_workspace_info`** — confirm the server is up, and that `root_dir` is the wiki you mean.
-2. **If `meta/interop.md` exists**, check the inbox it declares — messages from other wikis, oldest
-   first. Resolve or consciously defer them before starting new work.
-3. **Start at `index.md`** (or `README.md`) — it indexes what exists and frames the subject matter.
-4. **Search** — `search_resources` for the topic, or `list_tags` then `search_by_tag`.
-5. **Widen** — `get_connections` on each hit to pick up neighbours you'd otherwise miss.
-6. **Follow the note to its source.** A good note points at the authoritative file. Read that file
-   when the detail matters — **the source wins over the note**, and a note found to be stale should be
-   fixed as part of the work.
+- **Every one is re-runnable, and re-running is how a partial run gets finished.** Nothing locks —
+  several agents edit one wiki at once — so a file that changed under a verb is *skipped and
+  reported*, never overwritten. Read `skipped` in the return and run it again.
+- **Read `unresolved` too.** It carries the links the tool would not guess at: an ambiguous stem, a
+  bare `[[parent]]` after a split that could mean any of the children. Those are yours to settle.
+- **`split_by_heading` invents no names.** You supply the heading-to-path plan and the source note's
+  fate (`delete`, `stub` or `keep`), because a section title becoming a filename is judgment. It
+  refuses outright if a basename is already in the wiki.
 
----
+### On the command line
+
+The same operations, same names in kebab-case, when a shell is easier than a tool call:
+
+```shell
+awt check -w docs/wiki             # the whole graph, one call
+awt search 'listing budget'        # bodies as well as titles
+awt resolve 'stem#a-heading'       # …and what else matched
+awt move docs/wiki/a.md docs/wiki/b.md
+awt --help                         # every operation
+```
 
 ## Editing
 
@@ -136,10 +158,10 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   [Wikilinks vs. OKF links](#wikilinks-vs-okf-links)). Markdown links are for external URLs and files
   outside the wiki.
 - **Link liberally**, including to notes that don't exist yet — an unresolved `[[link]]` is a valid
-  to-do, discoverable via `get_placeholders`.
+  to-do, and `check` reports it under `placeholders`.
 - **Closing a placeholder is two operations.** Writing the note resolves the `[[link]]`, but the prose
   around it still says the note doesn't exist — *"`[[backups]]` is still unwritten"*, *"…and the
-  reason `[[backups]]` needs writing"*. Keep the backlinkers `get_placeholders` reported **before** you
+  reason `[[backups]]` needs writing"*. Keep the backlinkers `check` reported **before** you
   created it — they are gone from that list afterwards — then grep them for
   `unwritten|not yet written|needs writing|can now be written` and fix the sentences. A link resolving
   is not the same as a sentence becoming true, and nothing connects the two.
@@ -149,8 +171,8 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   is more useful than one that quietly picks a side.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
 - Add new notes to the home index (`index.md`) or the relevant MoC — otherwise they're orphans.
-  `foam list orphans` is the check; run it rather than trusting that you remembered.
-- Use `move_resource` / `rename_tag` for renames so links and tags stay intact.
+  `check` reports `orphans` and `unreferenced`; run it rather than trusting that you remembered.
+- Use `move` / `rename` / `rename_tag` for renames, so links and tags stay intact.
 - **Always format markdown tables.** Never leave a ragged `|---|---|` table behind.
 - No secrets, ever — the wiki is committed.
 
@@ -159,8 +181,8 @@ Tables are written as aligned rectangles, not left ragged — `awt fmt` does it,
 
 ### No display-text overrides
 
-**Use plain stems: `[[note-stem]]`, never `[[stem|text]]`.** A rename — `move_resource`, or `foam
-rename` on the CLI — rewrites the *target* of a labelled link but preserves the *label*, so
+**Use plain stems: `[[note-stem]]`, never `[[stem|text]]`.** A rename rewrites the *target* of a
+labelled link and leaves the *label* alone, so
 `[[target|the old description]]` becomes
 `[[power-supply-unit|the old description]]` — still rendering the old name, pointing at a note that is
 no longer called that. It renders fine, so nothing looks broken.
@@ -173,14 +195,14 @@ reach for a label to fix the grammar:
 - `Dashboards are [[two-tier-state|tier 2]]` → `Dashboards are tier 2 ([[two-tier-state]])`
 - `everything [[deploy-to-instance|rsync]] touches` → `everything rsync touches (see [[deploy-to-instance]])`
 
-Both forms resolve identically in Foam's graph, so this is about drift, not connectivity.
+Both forms resolve identically, so this is about drift, not connectivity.
 
 ---
 
 ## Other wikis (read-only mounts)
 
-A project may mount other projects' wikis as additional read-only foam servers, conventionally named
-`foam-<project>`. Only your own wiki is writable.
+A project may mount other projects' wikis as additional read-only servers, conventionally named
+after the project. Only your own wiki is writable, and `workspace_info` says so.
 
 **`meta/interop.md` is the switch.** If the wiki has one, this project exchanges knowledge with
 others, and that note declares which wikis are mounted, what each is authoritative for, and where
@@ -190,11 +212,12 @@ Three rules hold whether or not you read further, because breaking any of them i
 
 - **Never edit another project's notes.** The read-only mount is the guarantee; don't route around it
   with Write/Edit. If something there is wrong, send it a message or go work in that repo.
-- **Never write a cross-wiki reference as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]`
-  as a placeholder, so it lands in `get_placeholders` permanently and poisons the one signal that
-  means "note worth writing". Write a **prefixed markdown link** instead —
-  `[conventions](otherwiki:meta/conventions.md)` — which Foam reads as external and a rendered site
-  resolves. See *Cross-wiki references* in `interop.md`.
+- **Never write a cross-wiki reference as a `[[wikilink]]`.** The graph registers any unresolved `[[…]]`
+  as a placeholder, so it lands in the backlog permanently and poisons the one signal that means
+  "note worth writing". Write a **prefixed markdown link** instead —
+  `[conventions](otherwiki:meta/conventions.md)` — which the graph reads as external, `resolve`
+  reports as `crossWiki`, and a rendered site turns into a real URL. See *Cross-wiki references* in
+  `interop.md`.
 - **Never mount a wiki that depends on yours.** Mounts run one way, down the dependency: the project
   that already depends on the other mounts it, never the reverse — a depended-on project has to build
   and be worked on with no sibling checkout present. Two wikis mounting each other is a cycle, and it
@@ -237,9 +260,9 @@ keys, broken links, or missing `index.md`. That tolerance is what makes the next
 
 ### Wikilinks vs. OKF links
 
-OKF expresses the graph as bundle-relative markdown links; Foam and Obsidian need `[[wikilinks]]`. You
+OKF expresses the graph as bundle-relative markdown links; this estate and Obsidian need `[[wikilinks]]`. You
 can't have both. **Always use wikilinks — don't ask, don't propose converting.** They buy rename-safe
-links (`move_resource` rewrites them), Obsidian compatibility, and placeholders as a backlog; the cost
+links (`move` rewrites them), Obsidian compatibility, and placeholders as a backlog; the cost
 is that a generic OKF consumer sees the notes but none of the edges.
 
 That's a **declared deviation**, not a conformance break. Record it once in `meta/conventions.md`, and
@@ -273,10 +296,10 @@ Everything below is what a *wiki* adds on top of that.
 
 > ### Wikilinks are the hazard
 >
-> **Never run remark over a Foam wiki without the `remark-wiki-link` plugin.** Plain remark escapes
-> every `[[wikilink]]` to `\[\[wikilink]]`. It still *renders* as a wikilink, so nothing looks
-> broken — while every backlink, placeholder and `get_connections` result silently disappears. The
-> graph is gone and the diff looks cosmetic.
+> **Never run remark over a wiki without a plugin that knows what a wikilink is.** Plain remark
+> escapes every `[[wikilink]]` to `\[\[wikilink]]`. It still *renders* as a wikilink, so nothing looks
+> broken — while every backlink, placeholder and `connections` result silently disappears. The graph is
+> gone and the diff looks cosmetic.
 
 This is the general "custom inline syntax gets escaped" hazard, and it is worth being paranoid about
 here specifically, because a wiki's entire value is the edges. Practical consequences:
@@ -284,17 +307,14 @@ here specifically, because a wiki's entire value is the edges. Practical consequ
 - **Use the project's own scripts.** An ad-hoc `npx remark …` bypasses the config — and remark
   resolves config by walking up from each *file*, so it also happens when you point remark at a copy
   of the wiki outside the project.
-- **After any bulk markdown operation, verify the graph, not just the text.** `grep -r '\[\[' `
-  counts and `foam lint` reporting `0 errors` are the check that matters. Text-level diffs won't
-  show you a destroyed graph.
-- **`![[embeds]]` need one more check.** The plugin tokenises `[[…]]` only, so the `!`-prefixed
-  transclusion form is *not* covered by it — plain remark escapes it to `!\[\[note]]`, which stops
-  being an embed in both Foam and Obsidian. `awt fmt` repairs that on the way out; any other pipeline
-  needs its own post-pass. Grep for `'!\[\[' ` separately after a bulk run, since the wikilink count
-  above is unchanged by it.
-- **An embed is invisible to remark either way.** Even repaired it stays a text node, not a
-  `wikiLink`, so `remark-validate-links` and toolkit helpers like `wikiLinks()` never see the target.
-  Foam does see it, so `foam lint` remains the authority on whether an embed points anywhere.
+- **After any bulk markdown operation, verify the graph, not just the text.** `grep -rc '\[\['`
+  counts and `check` reporting no problems are what matter. Text-level diffs will not show you a
+  destroyed graph.
+- **`![[embeds]]` are ordinary links here, and are not everywhere else.** `awt` tokenises the
+  `!`-prefixed form, so an embed is a node, a graph edge, and something `rename` rewrites like any
+  other link. **Every other remark pipeline escapes it** to `!\[\[note]]`, which stops being an embed
+  in Obsidian and in Foam — so grep for `'!\[\['` separately after a bulk run by anything that is not
+  `awt fmt`, since the wikilink count above is unchanged by it.
 
 Two other wiki-flavoured uses of the same toolchain:
 
@@ -302,45 +322,48 @@ Two other wiki-flavoured uses of the same toolchain:
   `meta/conventions.md` — `type`, `status`, and whatever else the project fixed. Prose conventions
   decay; schema violations fail a check. Map different schemas to different folders when the rules
   differ between them.
-- **Link checking is split.** `foam lint` covers `[[wikilinks]]`; `remark-validate-links` covers
-  ordinary `[text](path.md#anchor)` links and heading anchors. A wiki usually has both, so run both.
+- **Link checking is not split any more.** `awt check` covers `[[wikilinks]]`, ordinary
+  `[text](path.md#anchor)` links, and heading anchors on both — one call, one answer. A project may
+  still add front-matter schema validation on top, which `awt fmt --check` runs from its config.
 
 ---
 
 ## Health checks
 
-The `foam` CLI backs the same workspace and is useful for verification after a batch of edits:
+One call, after a batch of edits:
 
 ```shell
-foam lint --workspace <wiki-root>            # broken links, stale link definitions
-foam list placeholders --workspace <wiki-root>
-foam list orphans --workspace <wiki-root>
+awt check -w <wiki-root>          # every problem, plus placeholders, orphans and dead ends
+awt check -w <wiki-root> --json   # the same answer, for a script
 ```
 
-**`--workspace` resolves against the current directory, not the repo root.** Run these from the repo
-root; from inside the wiki itself, `--workspace docs/wiki` looks for `docs/wiki/docs/wiki` and the
-`ENOENT` names a doubled path that appears in nothing you typed.
+It exits non-zero when there are **problems** and zero when there are only placeholders, which is the
+distinction that matters: a placeholder is a note worth writing, not a defect, and a check that failed
+on them would fail on every wiki with a backlog.
 
-`foam` is `npx -y foam-cli …` on a machine without the global install — several seconds per
-invocation, which is worth `npm install -g foam-cli` if you are running these more than once.
+Run the project's own markdown check in the same pass if it has one — `awt fmt --check` covers
+formatting, and a project may add front-matter schemas and relative-link validation on top.
+`meta/conventions.md` names the command.
 
-Run the project's markdown check in the same pass — the two cover different link types, so neither
-alone is sufficient. `meta/conventions.md` names the command; conventionally it is an npm script:
-
-```shell
-npm run docs:check                            # remark: lint, links, front-matter schema
-```
-
-`0 errors` means every wikilink resolves. `stale-definitions` warnings concern the autogenerated
-GitHub-compatibility link blocks (`--fix` adds them); whether to keep them is a per-project choice —
-follow whatever the existing notes do.
+> **A project part-way through the switch still has Foam.** Where `.mcp.json` mounts `foam-wiki`
+> alongside the toolbox, Foam is being kept deliberately as an **independent check** on the new graph,
+> not as a second thing for you to consult. Its CLI is still useful for exactly that:
+>
+> ```shell
+> npx -y foam-cli lint --workspace <wiki-root>       # a second opinion, not the authority
+> ```
+>
+> `--workspace` resolves against the current directory, not the repo root — from inside the wiki,
+> `--workspace docs/wiki` looks for `docs/wiki/docs/wiki` and the `ENOENT` names a doubled path that
+> appears in nothing you typed. Its `stale-definitions` warnings concern autogenerated
+> GitHub-compatibility link blocks and are a per-project choice; follow whatever the existing notes do.
 
 ---
 
 ## Setup and bootstrapping
 
 `.mcp.json` server config, mounting other projects' wikis, and the skeleton for a wiki that doesn't
-exist yet are in **`setup.md` beside this file**. Read it when `get_workspace_info` finds no server,
+exist yet are in **`setup.md` beside this file**. Read it when there is no wiki server at all,
 when the `meta/` notes are missing, or when asked to add a wiki to a project.
 
 ---
@@ -363,11 +386,11 @@ tasks:
   renderer clone and the build output are not.
 - **A cross-wiki reference is a prefixed markdown link** — `[conventions](otherwiki:meta/conventions.md)`
   — never a `[[wikilink]]`, for the placeholder reason in
-  [Other wikis](#other-wikis-read-only-mounts). It stays inert in Foam and the editor, and becomes a
+  [Other wikis](#other-wikis-read-only-mounts). It stays inert in the graph and the editor, and becomes a
   real link only in the rendered site.
 
 **Read `site.md` beside this file** before setting a site up, changing its configuration, running or
 debugging a build, or making a cross-wiki reference resolve. It covers the pinned renderer, what git
-tracks, build versus publish mode, the link-graph check that verifies the renderer against Foam, the
+tracks, build versus publish mode, the shadow check that holds the renderer and the graph to one answer, the
 cross-wiki resolver and its registry, and the traps — including why a wiki whose home is `README.md`
 serves a 404 at its root.

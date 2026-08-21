@@ -65,7 +65,7 @@ decisions, and it must be able to build with no other checkout of yours present.
 
 > **Record the invariant, not the counts.** *"This wiki has 10 placeholders at 19 call sites, and all
 > 19 are expected"* is falsified by deleting one stale `[[link]]` in an unrelated note, and it cannot
-> be refreshed by hand: `foam list placeholders` and `check-link-graph` count different things — 10
+> be refreshed by hand: the graph's placeholder list and the rendered check count different things — 10
 > placeholders across 21 reference lines versus 19 call sites, for one real wiki in one state — so the
 > only way to restate the numbers is to run the check and copy from it, which is what the sentence
 > claimed to be documenting. Write the property instead: *every unresolved link is expected to be a
@@ -213,7 +213,7 @@ customisation.** They are two independent implementations of the same graph, and
 only one — so it is checkable, and a mismatch means the rendered site is a plausible lie.
 
 The criterion is a **set comparison**, not "zero broken links": the links the renderer failed to
-resolve must match `foam list placeholders` exactly, in both directions. A wiki with 17 placeholders
+resolve must match the graph's own placeholder list exactly, in both directions. A wiki with 17 placeholders
 should render exactly those as broken and nothing else. A check that asserted zero would be wrong for
 every wiki that has a backlog.
 
@@ -233,7 +233,7 @@ worth failing on.
 
 > **A note's basename must not equal its parent folder's name.** Quartz collapses `foo/foo.md` into
 > that folder's index page — slug `…/foo/index` — so every `[[foo]]` resolves to a URL that never
-> exists, while `foam lint` reports a perfect graph. Unique basenames are **not** sufficient.
+> exists, while the link graph reports a perfect wiki. Unique basenames are **not** sufficient.
 
 Run the check on every Quartz bump, and after any bulk edit. An obligation described in prose is not
 one anybody can discharge, which is why it is an installed command rather than a procedure — and why it

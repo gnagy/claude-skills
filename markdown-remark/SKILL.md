@@ -1,9 +1,14 @@
 ---
 name: markdown-remark
-description: Use this skill when formatting, linting, or validating markdown — running `mdfmt` (the markdown-toolbox CLI), setting up remark (the unified/mdast toolchain) in a project, adding plugins, writing a custom rule, or debugging output a formatter mangled. Covers the `mdfmt` command and its config, the remark plugin map, the escaping hazards that silently corrupt documents, matching IntelliJ's table style, and how to verify a formatter before letting it near real files. Also read it before running any bulk markdown reformat, with any tool.
+description: Use this skill when formatting, linting, or validating markdown that is **not** a wikilinked wiki — a README, a CLAUDE.md, a docs tree with no link graph in it. Covers running `mdfmt` (the markdown-toolbox CLI), setting up remark (the unified/mdast toolchain) in a project, adding plugins, writing a custom rule, or debugging output a formatter mangled: the plugin map, the escaping hazards that silently corrupt documents, matching IntelliJ's table style, and how to verify a formatter before letting it near real files. For a wiki, load `wiki-docs` and use `awt fmt` instead. Also read it before running any bulk markdown reformat, with any tool.
 ---
 
 # Markdown editing with remark
+
+> **For a wiki, this is the wrong skill.** A `[[wikilink]]`-connected wiki is `wiki-docs`' subject and
+> `awt fmt` is its formatter — a formatter that does not know what a wikilink is destroys the link
+> graph while the diff looks cosmetic. Everything here applies to markdown with no link graph in it: a
+> README, a `CLAUDE.md`, a docs tree.
 
 [remark](https://github.com/remarkjs/remark) is the markdown half of the
 [unified](https://unifiedjs.com/) ecosystem: it parses markdown to an AST (**mdast**), runs plugins
@@ -115,15 +120,15 @@ writes nothing — **always start read-only**.
 These are the failure modes that cost real time. Most are silent — the document still *renders*
 correctly, so review doesn't catch them.
 
-| Hazard                       | Symptom                                                                                                     | Fix                                              |
-|------------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| Custom inline syntax escaped | `[[link]]` → `\[\[link]]`, `{{var}}` → `\{{var}}`. Renders fine, means nothing to the tool that consumed it | Load the plugin that teaches remark the syntax   |
-| Front matter destroyed       | YAML becomes a thematic break plus paragraphs                                                               | `remark-frontmatter`                             |
-| Wiki embed escaped           | `![[note]]` → `!\[\[note]]`, even *with* `remark-wiki-link`, which tokenises only `[[…]]`                   | No plugin covers it; post-process (`mdfmt` does) |
-| Lone `~` escaped             | "~15 rows" → "\\~15 rows"                                                                                   | No option exists; post-process or live with it   |
-| Whole-document restyle       | Every `-` bullet becomes `*`, every list reindents                                                          | Pin `settings`                                   |
-| Table misalignment           | Columns skew on any row with wide glyphs                                                                    | Custom `stringLength` (see below)                |
-| `validate-links` aborts      | "Cannot find remote `origin`" on every file                                                                 | `{repository: false}`                            |
+| Hazard                       | Symptom                                                                                                     | Fix                                                             |
+|------------------------------|-------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Custom inline syntax escaped | `[[link]]` → `\[\[link]]`, `{{var}}` → `\{{var}}`. Renders fine, means nothing to the tool that consumed it | Load the plugin that teaches remark the syntax                  |
+| Front matter destroyed       | YAML becomes a thematic break plus paragraphs                                                               | `remark-frontmatter`                                            |
+| Wiki embed escaped           | `![[note]]` → `!\[\[note]]`, even *with* `remark-wiki-link`, which tokenises only `[[…]]`                   | No plugin covers it; `mdfmt` post-processes, `awt` tokenises it |
+| Lone `~` escaped             | "~15 rows" → "\\~15 rows"                                                                                   | No option exists; post-process or live with it                  |
+| Whole-document restyle       | Every `-` bullet becomes `*`, every list reindents                                                          | Pin `settings`                                                  |
+| Table misalignment           | Columns skew on any row with wide glyphs                                                                    | Custom `stringLength` (see below)                               |
+| `validate-links` aborts      | "Cannot find remote `origin`" on every file                                                                 | `{repository: false}`                                           |
 
 **A construct the parser never tokenises can't be fixed with an option.** Escaping is decided per
 *text* node while serialising, so the levers are a plugin that turns the syntax into a node of its
@@ -262,5 +267,6 @@ write your own pass, read `lib/intellij-tables.mjs` and the fixtures beside it f
 `*.expected.md` files are real IntelliJ output, which is the only reliable way to know what the IDE
 actually does rather than what its docs imply.
 
-For a Foam wiki specifically, see the `wiki-docs` skill: Foam owns the link graph, remark owns the
-documents.
+For a wiki, see the `wiki-docs` skill and use `awt fmt`. The split is by *target*, not by preference:
+`awt` owns the link graph and the documents inside a wiki; `mdfmt` and the rest of this file own
+everything that is not one.

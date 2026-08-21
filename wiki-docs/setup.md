@@ -1,7 +1,7 @@
 # Setting up and bootstrapping a wiki
 
-Reference file for the `wiki-docs` skill. Read it when the foam server isn't configured yet, when the
-wiki's `meta/` notes are missing, or when asked to add a wiki to a project. `SKILL.md` beside this
+Reference file for the `wiki-docs` skill. Read it when there is no wiki server configured yet, when
+the wiki's `meta/` notes are missing, or when asked to add a wiki to a project. `SKILL.md` beside this
 file covers using a wiki that already exists.
 
 ## Server setup
@@ -11,20 +11,16 @@ The server is configured per project in `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "foam-wiki": {
-      "command": "npx",
-      "args": ["-y", "foam-cli", "mcp", "--allow-writes", "--workspace", "docs/wiki"]
+    "agent-wiki-toolbox": {
+      "command": "awt",
+      "args": ["mcp", "--allow-writes", "--workspace", "docs/wiki"]
     }
   }
 }
 ```
 
-`--workspace` is relative to the project root. Drop `--allow-writes` for a read-only wiki. `npx -y`
-fetches `foam-cli` on demand; install it globally to avoid that on every start:
-
-```shell
-npm install -g foam-cli
-```
+`--workspace` is relative to the project root. Drop `--allow-writes` for a read-only wiki. `awt` has
+to be on `PATH` — `awt --version` says whether it is, and which install answered.
 
 Adding or changing the server requires restarting the agent session and approving it.
 
@@ -33,11 +29,27 @@ Adding or changing the server requires restarting the agent session and approvin
 Mount them as additional servers, with an absolute path and **no** `--allow-writes`:
 
 ```json
-"foam-homeit": {
-  "command": "npx",
-  "args": ["-y", "foam-cli", "mcp", "--workspace", "${HOME}/Ops/homeit/docs/wiki"]
+"awt-homeit": {
+  "command": "awt",
+  "args": ["mcp", "--workspace", "${HOME}/Ops/homeit/docs/wiki"]
 }
 ```
+
+### The older server, and why a project may still have it
+
+`foam-cli mcp` served this role before the toolbox existed, and a project part-way through the switch
+runs **both**: the toolbox as the graph, Foam as an independent check on it. That is deliberate and is
+not something to tidy up — the second opinion is the only thing that can catch the first being wrong.
+
+```json
+"foam-wiki": {
+  "command": "npx",
+  "args": ["-y", "foam-cli", "mcp", "--allow-writes", "--workspace", "docs/wiki"]
+}
+```
+
+Retiring it is the owning project's call, and belongs after the two have been seen to agree across
+real edits — not on the day the toolbox is installed.
 
 Which project mounts which is not free choice: mount only down the dependency — see *Which way a
 mount points* in `interop.md` beside this file.
@@ -73,7 +85,7 @@ own:
 - **`status`**: `draft` · `stable` · `deprecated`.
 - **Filenames**: kebab-case, globally unique basenames — that keeps `[[stem]]` links unambiguous
   regardless of folder.
-- **Folders**: start flat. Split only when navigation actually hurts, using `move_resource`.
+- **Folders**: start flat. Split only when navigation actually hurts, using `move`.
 - **Classification**: tags first. Add front-matter axes (`area`, `domain`, `owner`, …) only when a real
   navigation need appears — each one is a vocabulary someone has to maintain.
 
