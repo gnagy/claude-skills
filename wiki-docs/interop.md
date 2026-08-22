@@ -74,16 +74,15 @@ ordinary file tools and treat its absence as normal.
 
 **Settled, and `site.md` beside this file owns it.** A cross-wiki reference is an ordinary markdown
 link whose destination carries a wiki prefix instead of a scheme —
-`[conventions](otherwiki:meta/conventions.md)` — inert in Foam and in the editor, resolved to a real
-URL at build time by the `cross-wiki-links` transformer that ships with `quartz-wiki-tools`. Read
-*Cross-wiki references* in `site.md` before writing one, for the registry, the prefix rules and the
-resolver's semantics.
+`[conventions](otherwiki:meta/conventions.md)` — inert in the graph and in the editor, resolved to a
+real URL at build time by the `awt-cross-wiki` transformer. Read *Cross-wiki references* in `site.md`
+before writing one, for the registry, the prefix rules and the resolver's semantics.
 
 Three rules matter wherever the reference is written, site or no site:
 
-> **Never write one as a `[[wikilink]]`.** Foam registers any unresolved `[[…]]` as a placeholder, so
-> it lands in `get_placeholders` permanently and poisons the one signal that means "note worth
-> writing". A prefixed link carries a scheme, so Foam treats it as external and never counts it.
+> **Never write one as a `[[wikilink]]`.** Any unresolved `[[…]]` is a placeholder, so it lands in the
+> placeholder list permanently and poisons the one signal that means "note worth writing". A prefixed
+> link carries a scheme, so the graph treats it as external and never counts it.
 
 - **Always the full path within the target wiki, never a bare stem.** Basenames collide across wikis —
   `index.md`, `meta/conventions.md` and `meta/scope.md` exist in every one — so the reference must
@@ -94,10 +93,12 @@ Three rules matter wherever the reference is written, site or no site:
 A wiki with no site still writes references this way. They do not resolve until something renders
 them, but they are the form that will, and they cost nothing meanwhile.
 
-**What is still genuinely missing is backlinks and link-checking *across* wikis** — resolution is
-solved, those are not. A reference into another wiki is invisible to that wiki, so nothing there knows
-it is depended upon, and `check-link-graph` deliberately treats a schemed destination as external.
-That is the remaining argument for tooling beyond plain read-only mounts.
+**What is still genuinely missing is backlinks *across* wikis.** Resolution is solved, and so is
+anchor checking — `awt-headings` publishes each page's anchors beside the content index, so a
+reference carrying `#a-heading` into a wiki that emits it is verified at build time and warns when the
+heading is gone. But a reference into another wiki is still invisible *to that wiki*: nothing there
+knows it is depended upon, and `awt check` deliberately treats a schemed destination as external. That
+is the remaining argument for tooling beyond plain read-only mounts.
 
 ## Finding another wiki's inbox
 
@@ -123,7 +124,7 @@ inbox directory **outside its wiki root** — conventionally `docs/wiki-inbox/`,
 but always as declared in its `meta/interop.md`. The sender writes a file there directly with Write.
 That is the **only** path in another project's repo any session may write.
 
-**Outside the wiki root is deliberate, on two counts.** Foam never indexes the inbox, so messages
+**Outside the wiki root is deliberate, on two counts.** Nothing indexes the inbox, so messages
 don't distort note counts, orphans or placeholders — and a message cannot quietly start being read as
 a fact. The receiver has to *convert* it into a real note before it counts as knowledge.
 

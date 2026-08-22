@@ -27,7 +27,7 @@ data files that are the executable truth.
 >
 > **A `meta/` note is authoritative about its project, not about the machine.** It settles what this
 > wiki does; it cannot settle what tools exist. A note saying a project has no formatter pipeline
-> wired up is not a note saying no formatter is installed — see [Markdown tooling](#markdown-tooling-what-a-wiki-adds).
+> wired up is not a note saying no formatter is installed — see [Markdown tooling](#markdown-tooling-awt).
 
 ---
 
