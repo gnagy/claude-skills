@@ -167,6 +167,12 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   is not the same as a sentence becoming true, and nothing connects the two.
 - **Never duplicate an authoritative source** into the wiki — no config file contents, no data rows.
   Link to the path and explain the shape and the reasoning instead. Duplicated facts go stale silently.
+- **A decision register is an authoritative source too — cite the row and stop.** Write *"whether it
+  moves is `[[some-decisions]]` 28"*, never that plus a retelling of what 28 says. A row number reads
+  like a citation, so the copied clause after it does not feel like duplication, and it ages
+  separately from the row with nothing to detect the drift. **Counts drift the same way**: "thirty-five
+  rows, one still open" in an index or a MoC is a copy of the register's own table, wrong the moment a
+  row changes status.
 - **Record open questions** rather than guessing. A note that says "these two sources disagree, unverified"
   is more useful than one that quietly picks a side.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
