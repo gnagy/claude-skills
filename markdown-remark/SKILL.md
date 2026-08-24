@@ -1,6 +1,6 @@
 ---
 name: markdown-remark
-description: Use this skill when formatting, linting, or validating markdown that is **not** a wikilinked wiki — a README, a CLAUDE.md, a docs tree with no link graph in it. Covers running `mdfmt` (the markdown-toolbox CLI), setting up remark (the unified/mdast toolchain) in a project, adding plugins, writing a custom rule, or debugging output a formatter mangled: the plugin map, the escaping hazards that silently corrupt documents, matching IntelliJ's table style, and how to verify a formatter before letting it near real files. For a wiki, load `wiki-docs` and use `awt fmt` instead. Also read it before running any bulk markdown reformat, with any tool.
+description: Use this skill when formatting, linting, or validating markdown that is **not** a wikilinked wiki — a README, a CLAUDE.md, a docs tree with no link graph in it. Covers running `mdfmt` (the markdown-toolbox CLI), setting up remark (the unified/mdast toolchain) in a project, adding plugins, writing a custom rule, or debugging output a formatter mangled — the plugin map, the escaping hazards that silently corrupt documents, matching IntelliJ's table style, and how to verify a formatter before letting it near real files. For a wiki, load `wiki-docs` and use `awt fmt` instead. Also read it before running any bulk markdown reformat, with any tool.
 ---
 
 # Markdown editing with remark
