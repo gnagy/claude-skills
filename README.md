@@ -10,7 +10,7 @@ can share them instead of each growing its own copy.
 | `markdown-remark`   | Formatting, linting, or validating markdown; before any bulk reformat |
 | `technical-writing` | Writing or reviewing a doc, RFC, wiki note, PR description or commit  |
 | `unslop`            | Stripping the AI tells out of prose that is about to ship             |
-| `wiki-docs`         | Reading or editing a Foam wiki through the `foam-wiki` MCP server     |
+| `wiki-docs`         | Reading or editing the project wiki; wiring a project to that skill   |
 
 `bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they run on
 `/bro` and `/technical-writing` and never load themselves. `bro` restates the previous message, which

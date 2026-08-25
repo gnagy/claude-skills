@@ -1,6 +1,6 @@
 ---
 name: wiki-docs
-description: Use this skill to read, search, or edit the project wiki — a markdown knowledge base of `[[wikilink]]`-connected notes served by the agent-wiki-toolbox MCP server (or, in older projects, foam-wiki), usually an Open Knowledge Format (OKF) bundle. Look something up here before changing it, and capture what you learn as linked notes. Also covers bootstrapping a wiki, and other projects' wikis mounted read-only alongside.
+description: Use this skill to read, search, or edit the project wiki — a markdown knowledge base of `[[wikilink]]`-connected notes served by the agent-wiki-toolbox MCP server (or, in older projects, foam-wiki), usually an Open Knowledge Format (OKF) bundle. Look something up here before changing it, and capture what you learn as linked notes. Read it before restructuring, splitting, renaming or bulk-editing notes with any tool, and before running any script over the wiki directory. Also covers bootstrapping a wiki, other projects' wikis mounted read-only alongside, and wiring a project's CLAUDE.md and meta/ notes to this skill or bringing them up to date with a new release of it.
 ---
 
 # Wiki Docs
@@ -20,14 +20,38 @@ data files that are the executable truth.
 > `workspace_info` versus `get_workspace_info` — so **list the tools you actually have before
 > reaching for one from this file.**
 
-> **This skill is project-agnostic on purpose.** Everything specific to *this* project — what belongs
-> in the wiki, the folder layout, the front-matter vocabularies — is defined in the wiki's own `meta/`
-> notes. Read those, don't assume; and when this skill and a `meta/` note disagree, the `meta/` note
-> wins.
->
-> **A `meta/` note is authoritative about its project, not about the machine.** It settles what this
-> wiki does; it cannot settle what tools exist. A note saying a project has no formatter pipeline
-> wired up is not a note saying no formatter is installed — see [Markdown tooling](#markdown-tooling-awt).
+---
+
+## Who owns what, and who wins
+
+This skill is project-agnostic on purpose. A project's own files — its `CLAUDE.md` and the wiki's
+`meta/` notes — carry what is specific to it. Read those, don't assume. **Precedence runs by subject,
+not by file:**
+
+| Subject                                                                                                                                      | Authority                          |
+|----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| **Choices** — wiki root, folder layout, front-matter vocabularies, the navigation axis, what belongs in the wiki, the project's own commands | The `meta/` notes and `CLAUDE.md`  |
+| **Mechanics** — tool names and flags, the wikilink hazard, OKF, `awt` usage, cross-wiki links, the message format, setup                     | This skill and the files beside it |
+
+**A local file restating a mechanic is not a second authority — it is a stale copy.** It was written
+against some earlier version of this file, nothing updates it, and it reads as local law to the next
+agent. Delete it and leave a pointer: a documentation fix, not a decision to raise. Changing a
+*choice* is the opposite — that is the project's, and yours to ask about rather than edit.
+
+**Refer, never quote.** Point at this skill by name and section heading — *"see the `wiki-docs` skill,
+'Editing'"* — so the reference survives an edit inside that section. A copied sentence does not, and a
+copied command, flag or field name is the form that fails silently, because it still looks
+authoritative long after it stops being true.
+
+**A `meta/` note is authoritative about its project, not about the machine.** It settles what this
+wiki does; it cannot settle what tools exist. A note saying a project has no formatter pipeline wired
+up is not a note saying no formatter is installed — see [Markdown tooling](#markdown-tooling-awt).
+
+**Nothing except the tool is evidence about the tool.** Not a `meta/` note, not your own system
+prompt, not a habit carried from another project. Before concluding that `awt` cannot do something —
+reformat a table, rename across the graph, tokenise an embed — run `awt --help`. Working around a
+limit you inferred rather than observed is how a wiki ends up restructured by hand-rolled scripts
+while the tool that does it safely sits on `PATH`.
 
 ---
 
@@ -371,6 +395,21 @@ formatting, and a project may add front-matter schemas and relative-link validat
 `.mcp.json` server config, mounting other projects' wikis, and the skeleton for a wiki that doesn't
 exist yet are in **`setup.md` beside this file**. Read it when there is no wiki server at all,
 when the `meta/` notes are missing, or when asked to add a wiki to a project.
+
+---
+
+## Wiring a project to this skill
+
+**A description is matched when the model happens to consider it; a project's `CLAUDE.md` is in
+context every turn.** So the thing that actually makes a project use this skill is a short mandate in
+its `CLAUDE.md`, and the thing that catches the sessions ignoring it is a `PreToolUse` hook on the
+wiki path. Both are shipped here as fixed text, so that a project holds a pointer with no content in
+it to go stale — the failure this whole split exists to prevent.
+
+**Read `adoption.md` beside this file** when installing this skill into a project, when a new release
+of it lands, or when asked to bring a project's `CLAUDE.md` and `meta/` notes up to date with it. It
+carries the `CLAUDE.md` block to paste verbatim, the guard hook and its limits, and the sweep that
+finds local text which has drifted out of step with this file.
 
 ---
 

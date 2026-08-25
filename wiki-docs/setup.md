@@ -95,6 +95,10 @@ and write down contradictions between sources as open questions rather than reso
 Add `meta/interop.md` only if the project actually exchanges knowledge with another wiki — see
 `interop.md` beside this file for what it must declare.
 
+**Wire the project to the skill in the same pass.** A wiki whose project never loads this skill gets
+restructured by whatever the next session improvises. `adoption.md` beside this file carries the block
+for the project's `CLAUDE.md` and the guard hook — both are part of bootstrapping, not a later tidy-up.
+
 ## The front-matter schema
 
 **A vocabulary written only in `meta/conventions.md` is a vocabulary that drifts.** Put it in a JSON
