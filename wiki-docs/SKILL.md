@@ -121,13 +121,20 @@ to look at before coining a tag that already nearly exists.
 
 `check` is the one that replaces four separate questions. It returns:
 
-| In `check`     | What it means                                                                                                  |
-|----------------|----------------------------------------------------------------------------------------------------------------|
-| `problems`     | Real defects: **ambiguous links**, broken section anchors, broken relative links, and a `[[` that never closed |
-| `placeholders` | **The backlog, not a defect** — a `[[stem]]` naming a note worth writing                                       |
-| `orphans`      | Notes with no links either way                                                                                 |
-| `deadends`     | Notes with **no way out** — you can reach them and not leave                                                   |
-| `unreferenced` | Notes nothing links to; reachable by search and nothing else                                                   |
+| In `check`     | What it means                                                                                                                                    |
+|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `problems`     | Real defects: **ambiguous links**, **two files served as one page**, broken section anchors, broken relative links, and a `[[` that never closed |
+| `placeholders` | **The backlog, not a defect** — a `[[stem]]` naming a note worth writing                                                                         |
+| `orphans`      | Notes with no links either way                                                                                                                   |
+| `deadends`     | Notes with **no way out** — you can reach them and not leave                                                                                     |
+| `unreferenced` | Notes nothing links to; reachable by search and nothing else                                                                                     |
+
+> **Two files on one page is an error too, and it is the one you cannot see.** A wiki can hold two
+> files that render to the same address — `x/x.md` beside `x/index.md`, `a b.md` beside `a-b.md`, two
+> spellings that differ only in case. Nothing links to them wrongly, so no link-level rule fires;
+> `check` reports `colliding-view` on **every file in the group**, and the fix is to rename all but
+> one. Which of them the index keeps is directory order, so leaving it is not a choice, it is a
+> coin flip.
 
 > **An ambiguous link is an error, not a guess.** Two notes sharing a basename means a `[[stem]]`
 > naming either one resolves to neither, and the rendered site 404s while nothing warns. `resolve`
