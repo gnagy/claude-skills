@@ -178,6 +178,9 @@ awt --help                         # every operation
 Read `meta/conventions.md` first. Beyond whatever it says:
 
 - **One concept per note.** Prefer a new linked note over growing an existing one past its subject.
+  **A `[[note#section]]` reference is the signal.** A section worth linking to is usually a note worth
+  splitting out, and splitting it turns a reference that breaks when someone rewords the heading into a
+  link that survives a rename.
 - **Link notes with `[[wikilinks]]`** — always, no confirmation needed (see
   [Wikilinks vs. OKF links](#wikilinks-vs-okf-links)). Markdown links are for external URLs and files
   outside the wiki.
@@ -196,9 +199,23 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   like a citation, so the copied clause after it does not feel like duplication, and it ages
   separately from the row with nothing to detect the drift. **Counts drift the same way**: "thirty-five
   rows, one still open" in an index or a MoC is a copy of the register's own table, wrong the moment a
-  row changes status.
+  row changes status. **An identifier range is a count wearing a hat** — *"decisions 6–13 are the
+  current world"*, *"questions 3–5 and 21–23 are open"* — and it reads like a citation while ageing
+  like a copy. One such list in a Map of Content named six questions as open that had been resolved
+  days earlier. Cite the register and count nothing.
 - **Record open questions** rather than guessing. A note that says "these two sources disagree, unverified"
   is more useful than one that quietly picks a side.
+- **A measured figure has one home.** *"0 of 39 rows match"*, *"181 of 181 notes are conformant"* — the
+  note that did the measuring owns it, and every other note links there. The same figure written down
+  twice is two claims about a wiki that has since changed, with nothing connecting them.
+- **No changelog section in a note.** Git owns the history and `log.md` owns the wiki's chronology. A
+  *What changed* heading inside a note is a third record that only grows, and it is the first part to
+  go stale when the note around it is rewritten.
+- **A nested `index.md` cannot be reached by a wikilink at all.** `[[index]]` resolves to the wiki
+  home, while `[[folder/index]]` and `[[folder/index.md]]` both come back as **placeholders** — so the
+  link joins the backlog and nothing reports an error. Folder segments are not the problem;
+  `[[folder/note-b]]` resolves fine. Link a nested listing with a **relative markdown link** —
+  `[the folder listing](folder/index.md)` — which `check` does validate.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
 - Add new notes to the home index (`index.md`) or the relevant MoC — otherwise they're orphans.
   `check` reports `orphans` and `unreferenced`; run it rather than trusting that you remembered.
