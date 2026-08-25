@@ -121,13 +121,13 @@ to look at before coining a tag that already nearly exists.
 
 `check` is the one that replaces four separate questions. It returns:
 
-| In `check`     | What it means                                                                                                                                    |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `problems`     | Real defects: **ambiguous links**, **two files served as one page**, broken section anchors, broken relative links, and a `[[` that never closed |
-| `placeholders` | **The backlog, not a defect** — a `[[stem]]` naming a note worth writing                                                                         |
-| `orphans`      | Notes with no links either way                                                                                                                   |
-| `deadends`     | Notes with **no way out** — you can reach them and not leave                                                                                     |
-| `unreferenced` | Notes nothing links to; reachable by search and nothing else                                                                                     |
+| In `check`     | What it means                                                                                                                                                                                |
+|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `problems`     | Real defects: **ambiguous links**, **two files served as one page**, **a link that misses a note which exists**, broken section anchors, broken relative links, and a `[[` that never closed |
+| `placeholders` | **The backlog, not a defect** — a `[[stem]]` naming a note that does not exist yet                                                                                                           |
+| `orphans`      | Notes with no links either way                                                                                                                                                               |
+| `deadends`     | Notes with **no way out** — you can reach them and not leave                                                                                                                                 |
+| `unreferenced` | Notes nothing links to; reachable by search and nothing else                                                                                                                                 |
 
 > **Two files on one page is an error too, and it is the one you cannot see.** A wiki can hold two
 > files that render to the same address — `x/x.md` beside `x/index.md`, `a b.md` beside `a-b.md`, two
@@ -135,6 +135,12 @@ to look at before coining a tag that already nearly exists.
 > `check` reports `colliding-view` on **every file in the group**, and the fix is to rename all but
 > one. Which of them the index keeps is directory order, so leaving it is not a choice, it is a
 > coin flip.
+
+> **A link can miss a note that exists, and that is an error.** Resolution follows Quartz's
+> shortest-path rule, and it has gaps — `[[folder/index]]` does not reach a listing one level down,
+> though `[[a/b/index]]` reaches one two levels down. `check` reports `unreachable-note` wherever a
+> link resolves to nothing while a file sits at exactly that address, so it can never be mistaken for
+> backlog. **Reach a folder listing with a relative markdown link.**
 
 > **An ambiguous link is an error, not a guess.** Two notes sharing a basename means a `[[stem]]`
 > naming either one resolves to neither, and the rendered site 404s while nothing warns. `resolve`
@@ -219,11 +225,12 @@ Read `meta/conventions.md` first. Beyond whatever it says:
   *What changed* heading inside a note is a third record that only grows, and it is the first part to
   go stale when the note around it is rewritten.
 - **A folder listing one level down cannot be linked.** `[[index]]` reaches the wiki home and
-  `[[a/b/index]]` resolves, but `[[folder/index]]`, `[[folder/index.md]]` and `[[folder/]]` all come
-  back as **placeholders** — so the one-deep `index.md` a layout actually produces joins the backlog
-  that means *note worth writing*, and nothing reports an error. Folder segments are not the problem;
-  `[[folder/note-b]]` resolves. Link a nested listing with a **relative markdown link** —
-  `[the folder listing](folder/index.md)` — which `check` does validate.
+  `[[a/b/index]]` resolves, but `[[folder/index]]`, `[[folder/index.md]]` and `[[folder/]]` reach
+  nothing — Quartz's own shortest-path rule, which the toolbox mirrors, so it is not a gap that will
+  quietly close. Folder segments are not the problem; `[[folder/note-b]]` resolves. Link a nested
+  listing with a **relative markdown link** — `[the folder listing](folder/index.md)` — which `check`
+  validates. `check` errors on the wikilink form rather than filing it as backlog, so this costs you a
+  build, not a graph.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
 - Add new notes to the home index (`index.md`) or the relevant MoC — otherwise they're orphans.
   `check` reports `orphans` and `unreferenced`; run it rather than trusting that you remembered.
