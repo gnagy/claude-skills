@@ -211,10 +211,11 @@ Read `meta/conventions.md` first. Beyond whatever it says:
 - **No changelog section in a note.** Git owns the history and `log.md` owns the wiki's chronology. A
   *What changed* heading inside a note is a third record that only grows, and it is the first part to
   go stale when the note around it is rewritten.
-- **A nested `index.md` cannot be reached by a wikilink at all.** `[[index]]` resolves to the wiki
-  home, while `[[folder/index]]` and `[[folder/index.md]]` both come back as **placeholders** — so the
-  link joins the backlog and nothing reports an error. Folder segments are not the problem;
-  `[[folder/note-b]]` resolves fine. Link a nested listing with a **relative markdown link** —
+- **A folder listing one level down cannot be linked.** `[[index]]` reaches the wiki home and
+  `[[a/b/index]]` resolves, but `[[folder/index]]`, `[[folder/index.md]]` and `[[folder/]]` all come
+  back as **placeholders** — so the one-deep `index.md` a layout actually produces joins the backlog
+  that means *note worth writing*, and nothing reports an error. Folder segments are not the problem;
+  `[[folder/note-b]]` resolves. Link a nested listing with a **relative markdown link** —
   `[the folder listing](folder/index.md)` — which `check` does validate.
 - Keep `title` in sync with the H1. Move `status` forward as a note matures.
 - Add new notes to the home index (`index.md`) or the relevant MoC — otherwise they're orphans.
