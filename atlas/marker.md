@@ -15,7 +15,7 @@ Three fields, and each has one reader.
 ```yaml
 ---
 atlas: project
-spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/atlas
 authority: git@github.com:acme/acme-project.git
 ---
 ```
@@ -129,7 +129,7 @@ A project that catalogues itself:
 ```markdown
 ---
 atlas: project
-spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/atlas
 authority: self
 ---
 # acme-platform
@@ -144,7 +144,7 @@ A directory holding one machine's part of a larger engagement:
 ```markdown
 ---
 atlas: project
-spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/atlas
 authority: git@github.com:acme/acme-project.git
 ---
 # Acme
@@ -166,7 +166,7 @@ Material that cannot hold its own marker:
 ```markdown
 ---
 atlas: material
-spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/atlas
 describes: /Volumes/archive/scans
 observed: 2026-08-29
 ---
