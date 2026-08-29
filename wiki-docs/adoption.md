@@ -65,6 +65,13 @@ never framed its work as *"editing the wiki"* at all, which is what a multi-day 
 from the inside. A `PreToolUse` hook catches those, because it fires on the path rather than on the
 agent's framing.
 
+**The script is managed, exactly like the block above: replaced wholesale, never edited in place.**
+`WIKI_ROOT` is the one line a project owns. Nothing propagates a change to it — this is a file copied
+into each project, with no version in it and nothing reading this skill at runtime — so a project
+takes a fix only when step 5 runs, which is why step 5 replaces rather than inspects. A project that
+genuinely needs different matching keeps its own and **says in the file that it is a deviation, and
+why**, the same as step 3's third row.
+
 `.claude/hooks/wiki-docs-guard.sh`, `chmod +x`:
 
 ```bash
@@ -87,7 +94,13 @@ case "$tool" in
   *) exit 0 ;;
 esac
 
-[[ "$target" == *"$WIKI_ROOT"* ]] || exit 0
+# Match WIKI_ROOT as a whole path, not a prefix: `docs/wiki-inbox/` is a sibling, and it is
+# the one path in another repo the interop protocol says to write to. The trailing space folds
+# "target ends with the root" into "root followed by whitespace".
+case "$target " in
+  *"$WIKI_ROOT"/*|*"$WIKI_ROOT"[[:space:]]*|*"$WIKI_ROOT"\"*|*"$WIKI_ROOT"\'*) ;;
+  *) exit 0 ;;
+esac
 
 marker="${TMPDIR:-/tmp}/wiki-docs-guard-${session}"
 [[ -e "$marker" ]] && exit 0
@@ -127,9 +140,16 @@ What it does and does not do, because both matter:
   once to deliver a sentence, then writes a marker and stays out of the way. It is a nudge with teeth,
   not a lock: an agent that ignores the reason and retries gets through.
 - **It covers `Bash` because the bypass is `Bash`.** A harness that tells an agent to prefer `sed` and
-  heredocs over `Write` routes straight around a Write-only guard. The Bash check is a substring test
-  on the command, so it catches `cat > docs/wiki/x.md` and misses a script that builds the path at
+  heredocs over `Write` routes straight around a Write-only guard. The Bash check is a text test on
+  the command, so it catches `cat > docs/wiki/x.md` and misses a script that builds the path at
   runtime.
+- **The root is matched as a whole path, not a prefix, and that is not fussiness.**
+  `docs/wiki-inbox/` begins with `docs/wiki`, so a substring test fires on the conventional inbox —
+  the one path in another project's repo this protocol permits writing to. The denial is not the
+  damage, since the guard fails open. **A false positive spends the session's only fire**, and the
+  real wiki edit later in that same session then passes unguarded, silently. Anchoring on
+  `docs/wiki/` with a trailing slash would also stop the collision and would lose `awt fmt
+  docs/wiki`, a genuine bulk write with nothing after the root.
 - **It fails open at every step** — no `jq`, unreadable JSON, unwritable marker. A guard that blocks
   wiki work because it is itself broken is worse than no guard.
 - **The marker is per session id, in `TMPDIR`.** Nothing to clean up, and nothing lands in the repo.
@@ -235,8 +255,14 @@ hook's `WIKI_ROOT` only moves when the project's layout does.
    or a leftover. Leftovers are the ones that do damage — they are confidently wrong rather than
    merely redundant.
 
-5. **Check the guard hook** exists, is executable, and that its `WIKI_ROOT` still matches
-   `.mcp.json`.
+5. **Replace the guard hook** with the script in §2, wholesale, carrying this project's `WIKI_ROOT`
+   across — then check it is executable and that `WIKI_ROOT` still matches `.mcp.json`. Add it if it
+   is missing, and say so.
+
+   **Replacement rather than inspection, because this hook's failures are silent.** It fails open by
+   design, so a stale one guards nothing and says nothing about it; there is no error to notice and
+   no version to compare. Reading it to decide whether it looks current costs more than overwriting
+   it. Leave it alone only where the file declares itself a deviation.
 
 6. **Report, do not silently rewrite.** Deleting a restated mechanic is a documentation fix and needs
    no permission. **Changing a `meta/` vocabulary is a project decision** — front-matter values,
