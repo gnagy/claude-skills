@@ -8,66 +8,115 @@ It is a declaration rather than a derivation, which makes it the file in this mo
 fill up with things a tool could have read for itself. The prohibitions below matter more than the
 permissions.
 
-## Two roles
+## Front matter
 
-The distinction exists because one thing reads this file: a walker descending a tree, deciding
-whether to stop.
+Three fields, and each has one reader.
 
-| `atlas:` | Meaning                                                                                          |
-|----------|--------------------------------------------------------------------------------------------------|
-| `zone`   | Claims the region. Resolution stops here and continues under this authority                      |
-| `entry`  | Annotates a subtree without claiming it. Descent continues, and the enclosing zone still owns it |
+```yaml
+---
+atlas: project
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+authority: git@github.com:acme/acme-project.git
+---
+```
 
-Neither is the safe default. A zone is a boundary and should be rare. An entry is an annotation and
-is the ordinary case.
+| Field       | Says                                                                                             | Read by                           |
+|-------------|--------------------------------------------------------------------------------------------------|-----------------------------------|
+| `atlas`     | What this directory is — one value from the closed list below                                    | Whoever is reading the file       |
+| `spec`      | Which format this is written in. The same URL in every marker                                    | An agent that has never seen one  |
+| `authority` | Who owns the facts about this region — a clonable catalogue, or `self`. **Absent is meaningful** | A walker deciding whether to stop |
 
-**A zone names its authority, or claims it.** Either it says where the region is catalogued — naming
-the catalogue instance, a wiki, or a person — or it says nothing and is itself the catalogue for the
-region. Without that, the flag says *stop* but not *ask whom*, and resolution dead-ends. **Name the
-instance, never the standard**: "catalogued by atlas" is the same dead end, one word longer. See
-*Atlas is the standard, and a catalogue has its own name* in `SKILL.md`.
+**`atlas` takes one value:**
 
-**A repo root is not automatically a zone.** Some repos are components of a larger thing and defer to
-it. The flag lets them say so, instead of leaving a walker to conclude that a `.git` directory marks
-a boundary.
+| Value                                             | Means                                            |
+|---------------------------------------------------|--------------------------------------------------|
+| `project` · `workspace` · `checkout` · `material` | The unit it is, as `SKILL.md` defines them       |
+| `aggregation`                                     | A container holding children it does not own     |
+| `none`                                            | Not a unit at all — a directory that accumulated |
 
-If a directory fits neither role, **say so in the file and leave it unclassified.** A misfit you can
-see is worth more than a wrong label that looks correct.
+The last two are not units, deliberately. A walk has to be able to say what a directory is *not*, and
+those are the two commonest such answers on a real tree. `repo` never appears here either: a
+directory holds a checkout, and the repo is the identity behind it.
+
+**`spec` is what makes the file self-describing.** An agent that finds one in a repository it has
+never seen has no skill loaded and no reason to guess; the URL is the whole of its way in. It is
+boilerplate, identical everywhere, and that is the point.
+
+**`authority` decides descent, and absent means the enclosing authority still owns this.** That is the
+ordinary case — most markers annotate without claiming anything. `self` says this thing is its own
+catalogue. A repository reference says the region is catalogued there, and is clonable so that an
+agent starting cold can go and read it.
+
+**A repo root is not automatically an authority.** Some repos are components of a larger thing and
+defer to it. Leaving the field out lets them say so, instead of leaving a walker to conclude that a
+`.git` directory marks a boundary.
+
+If a directory fits none of the `atlas` values, **say so in the file and leave it unclassified.** A
+misfit you can see is worth more than a wrong label that looks correct.
 
 ## Describing somewhere else
 
 The target defaults to the directory the file sits in. Some things cannot hold a file at all: a repo
-you do not own, a read-only share, a mounted volume, a project with no files on this machine. State
-the target explicitly in those cases.
+you do not own, a read-only share, a mounted volume, a project with no files on this machine. Add
+`describes:` with the target and `observed:` with the date in those cases.
 
 Two consequences follow.
 
-- **A walker must not treat a describes-elsewhere entry as covering the directory it sits in.** The
+- **A walker must not treat a describes-elsewhere marker as covering the directory it sits in.** The
   file is a pointer, not a description of its own neighbourhood.
 - **A remote target goes stale silently.** Nothing local changes when the thing it describes moves or
-  disappears, so record what you observed and the date you observed it. That is the same exception
-  that applies wherever a fact is needed before the files exist.
+  disappears, which is what `observed:` is for.
 
-## What goes in
+## The body
 
-- What this is, in the model's terms: a unit from the list in `SKILL.md`, an aggregation, or not a
-  unit at all
-- Membership, when the name does not make it obvious
-- The backward pointer, when the thing exists to serve something in particular
-- Pointers: the setup document, CI/CD, the wiki root and its prefix, lineage
-- Lifecycle, when it is not live
+Four parts, in this order, and any of them may be empty.
+
+1. **An abstract.** Two sentences: what this is, and what larger thing it is part of.
+2. **Where the real documentation is.** The project's own README, `CLAUDE.md`, wiki or setup
+   document. *The catalogue points, the project instructs* — so this file never explains how to build
+   anything, it says which document does.
+3. **What is directly below**, one level and no deeper. Each child gets a line: what it is, and
+   whether it is a member. Deeper levels carry their own markers, which is what keeps this file short
+   and the tree walkable one step at a time.
+4. **Anything the name does not make obvious** — the backward pointer where the thing exists to serve
+   something in particular, and lifecycle where it is not live.
+
+**Prefer a reference to a restatement everywhere.** A marker that summarises the document it points at
+has taken on a copy that ages separately from its source.
 
 ## What must never
 
-Remotes, sizes, commit dates, toolchains, dependency lists, branch names.
+Remotes, sizes, commit dates, toolchains, dependency lists, branch names — **for anything that is
+here.** A tool can read every one of those, or they change without anyone editing this file. Written
+here they outrank the real source the moment the two diverge, and a reader cannot tell a stale line
+from a current one.
 
-A tool can read every one of those, or they change without anyone editing this file. Written here
-they outrank the real source the moment the two diverge, and a reader cannot tell a stale line from a
-current one. **If a tool can read it, do not write it down.**
+**The exception is a thing that is absent.** Where to fetch something that is not on disk cannot be
+derived from a disk that does not have it, and an agent starting from a bare tree needs exactly that.
+So: **name where to get what is missing, and say nothing about the origin of what is present.** This
+is *Derive, don't transcribe*'s second exception, and `authority` is the case that matters most —
+clone it and the catalogue holds the rest.
 
-## An entry must earn itself
+## A project root always carries one
 
-Write one only where the contents do not already say what the thing is. A source directory never
+A project root is where anyone lands, and what a marker says there — what this is, who owns the facts
+about it, what is directly below — is never in a listing. Put one there whatever the project's
+documentation looks like; it is a different question from how well the project explains itself.
+
+**`atlas.md` and `atlas/` are different things, and a repo hosting a catalogue has both:**
+
+| Path       | Holds                                                                   |
+|------------|-------------------------------------------------------------------------|
+| `atlas.md` | The marker. What *this* directory is, for whoever has just landed in it |
+| `atlas/`   | The catalogue this repo hosts — what it records about a wider region    |
+
+`authority: self` is what says the catalogue is here rather than elsewhere, and `atlas/index.md` is
+its entry point. A repo that hosts no catalogue has the marker and no directory — which is most of
+them.
+
+## A marker must earn itself
+
+Below a project root, write one only where the contents do not already say what the thing is. A source directory never
 needs one. A folder of scanned documents whose filenames say nothing does.
 
 The failure mode is one in every directory, most of them restating what a listing already shows. That
@@ -75,56 +124,66 @@ buries the few that carry real information, and it is how this file stops being 
 
 ## Examples
 
-A zone that delegates to its own documentation:
+A project that catalogues itself:
 
 ```markdown
 ---
-atlas: zone
+atlas: project
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+authority: self
 ---
 # acme-platform
 
-Project and workspace. Catalogued by its own wiki at `docs/wiki/`.
+The platform and the workspace it is worked in. Catalogued by its own wiki at `docs/wiki/`.
 
-Setup: `docs/getting-started.md`, which names its prerequisites and proceeds in phases.
-Deploys to production directly. There is no staging environment.
+Setup is `docs/getting-started.md`, which names its prerequisites and proceeds in phases.
 ```
 
-An entry covering neighbours it cannot write into:
+A directory holding one machine's part of a larger engagement:
 
 ```markdown
 ---
-atlas: entry
-describes: ./
+atlas: project
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
+authority: git@github.com:acme/acme-project.git
 ---
-# upstream clones
+# Acme
 
-Five checkouts of other people's repositories, kept here to read and build against.
-The role is vendor: none of this is ours, all of it is re-cloneable, and none of it
-needs backing up. Local modifications, where they exist, are listed in `PATCHES.md`.
+A client engagement. This directory is where it sits on this machine; the rest is on other
+people's machines and in what the client runs.
+
+`platform/` documents itself, wiki included — read that, not this.
+
+Directly below:
+
+- `platform/` — the workspace; its own `atlas.md` covers what is in it
+- `vendor/` — upstream clones, kept to read and build against. Not ours, all re-cloneable
+- `scratch/`, `screenshots/` — material
 ```
 
-An entry for material that cannot hold its own:
+Material that cannot hold its own marker:
 
 ```markdown
 ---
-atlas: entry
+atlas: material
+spec: https://github.com/gnagy/claude-skills/tree/HEAD/skills/atlas
 describes: /Volumes/archive/scans
 observed: 2026-08-29
 ---
 # scanned reference documents
 
-On a read-only share, so this file lives here instead of there. Roughly 350 GB of
-scanned manuals. The filenames are serial numbers and say nothing about the contents.
-No upstream to re-fetch from, so this is irreplaceable.
+On a read-only share, so this file lives here instead of there. Roughly 350 GB of scanned
+manuals. The filenames are serial numbers and say nothing about the contents. No upstream to
+re-fetch from, so this is irreplaceable.
 ```
 
 ## Walking a tree
 
 1. Descend. At each directory, look for an `atlas.md`.
-2. On a **zone**, record the delegation and its authority, then stop descending. Everything below
-   belongs to that authority.
-3. On an **entry**, fold it into what you know about the region and keep descending.
-4. On a **describes-elsewhere** file, record it against the stated target and treat the directory it
+2. With **no `authority`**, fold the marker into what you know about the region and keep descending.
+3. With an **`authority`**, record the delegation and stop descending. Everything below belongs to
+   that authority — `self` means the thing catalogues itself, a reference means clone it and read it.
+4. On a **describes-elsewhere** marker, record it against the stated target and treat the directory it
    sits in as if the file were not there.
 5. With **no marker**, infer as usual. Most directories will never have one, and a tree with no
    markers at all must still be walkable.
