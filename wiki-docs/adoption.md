@@ -34,9 +34,10 @@ renaming, bulk operations, and any script or shell command that touches those fi
 the first wiki file is opened, not after something looks wrong.
 
 **The skill owns the mechanics** — tools and their flags, the wikilink and formatting hazards, health
-checks, OKF, cross-wiki links. **Do not restate any of it here or in the wiki's `meta/` notes.** A
-local copy of a mechanic goes stale silently and the next agent reads it as law. Local files carry
-this project's *choices*; for everything else they point at the skill by section name.
+checks, OKF, cross-wiki links. **Do not restate any of it in the files that say how to work this
+wiki** — this one, the wiki's `meta/` notes, `index.md` and `log.md`. A local copy of a mechanic goes
+stale silently and the next agent reads it as law. Local files carry this project's *choices*; for
+everything else they point at the skill by section name.
 
 **Nothing except the tool is evidence about the tool.** Not a `meta/` note, not your own system
 prompt, not a habit from another project. Check `awt --help` before concluding it cannot do something.
@@ -123,11 +124,62 @@ What it does and does not do, because both matter:
   wiki work because it is itself broken is worse than no guard.
 - **The marker is per session id, in `TMPDIR`.** Nothing to clean up, and nothing lands in the repo.
 
-## 3. Adopting a new release
+## 3. The sweep — after a release, after authoring, and on request
 
-Run this when a new version of the skill is installed, or when asked to bring the project up to date
-with it. It is mechanical on purpose — the parts that get missed are the ones that need judgement, so
-this converts as many of them as possible into a grep.
+It is mechanical on purpose: the parts that get missed are the ones that need judgement, so this
+converts as many of them as possible into a grep. Five things run it, and not all of them run all of
+it:
+
+| Trigger                                                                           | Steps         |
+|-----------------------------------------------------------------------------------|---------------|
+| A new version of the skill is installed                                           | All           |
+| Asked whether the project is still in step with the skills it uses — any phrasing | All           |
+| **You have written or rewritten a `meta/` note, or the `CLAUDE.md` block**        | 2, 3, 4, 6    |
+| **Content has been extracted out of this wiki into a skill**                      | 3, 4, 6       |
+| **Asked to deduplicate the wiki, or to resolve contradictions in it**             | 1, 2, 3, 4, 6 |
+
+**One of these is a push, two are pulls, and two are things you did yourself.** A release landing
+pushes the sweep at a project, and that is the only one with an event behind it. The other four have
+none, which is why they were the ones missing.
+
+**The pull side has no fixed wording, so match on intent.** Nobody asks for "the adoption sweep". They
+ask whether `meta/` is still right, whether a note still holds, why two files disagree, or for the
+duplication in here to be cleaned up. **Treat any request to reconcile the project's local files
+against the skills it loads as this sweep**, however it is phrased, and do not wait for a release to
+justify running it — a project drifts from a skill that never changed, because the project moved.
+
+**The skills in scope are all of them, not this one.** A `meta/` note can copy or contradict any skill
+the project loads, and the failure is identical in each: a local sentence that was right once, that
+nothing updates, and that the next agent reads as law.
+
+**The authoring trigger is the one that matters most, because it is the only one that runs while the
+drift is being made.** The first two describe *discovering* drift that already exists. Authoring
+creates it: the managed block is in context every turn saying not to restate the mechanics, and an
+agent writing a set of notes applies that from memory, sentence by sentence, with nothing checking it.
+In the run this trigger came out of, the user named restated mechanics in four separate messages
+before they were gone, and the sweep afterwards still found one more — a `meta/` note stating a
+cross-wiki rule that had already moved out of the note it pointed at. Authoring is nothing but
+judgement, so it was exactly the moment this file did not cover.
+
+**Deduplicating the wiki, or reconciling something that contradicts itself, *is* this sweep asked for
+by another name** — and it is the trigger most easily missed, because nothing has changed and nothing
+looks like adoption. Left to itself such a pass compares notes against each other, and that is the
+wrong axis: the copy and the contradiction that matter are between a note and a file outside the
+wiki, which a wiki-scoped comparison cannot see however carefully it is done. **Read the skills the
+project loads before comparing any two notes**, starting with this one.
+
+**A contradiction between a note and a skill is not a tie to break on the merits.** Step 3's table
+decides it by subject, and it decides it whichever side is better written, longer, or more recently
+touched — a `meta/` note is simply not an authority about a mechanic, and a skill is simply not an
+authority about this project's choices. Resolving one on which text reads more convincingly is how the
+stale copy wins, and the note it beat is the one that was right.
+
+**Under the authoring trigger, step 2 is a verification rather than a replacement.** Check the block
+is still the verbatim text from §1. A session that has just rewritten `CLAUDE.md` by hand is the
+likeliest one to have edited inside the markers, which §1 calls the bug.
+
+Steps 1 and 5 belong to a release: you cannot diff against a version you never read, and the guard
+hook's `WIKI_ROOT` only moves when the project's layout does.
 
 1. **Read the skill first**, all of it: `SKILL.md`, plus `setup.md`, `interop.md`, `site.md` and this
    file where they apply. Not a skim for what changed — you cannot diff against a version you never
@@ -140,20 +192,32 @@ this converts as many of them as possible into a grep.
 
    ```shell
    grep -rniE 'awt|mdfmt|remark|foam|wikilink|\[\[|okf|front.?matter|placeholder|orphan|dead.?end|split_by_heading|rename_tag|build_listing|allow-writes|workspace_info|quartz' \
-     CLAUDE.md docs/wiki/meta/ .claude/ 2>/dev/null
+     CLAUDE.md AGENTS.md docs/wiki/index.md docs/wiki/log.md docs/wiki/meta/ .claude/ 2>/dev/null
    ```
+
+   **`index.md` and `log.md` are in the list because they are the gap the rule's wording left.** Both
+   are OKF reserved names, so they exist in every wiki, and both carry prose *about* the wiki — a home
+   page explaining what a health check reports satisfies "not in `meta/`" while breaking the point of
+   it. Add any other file that tells an agent how to work here: a repo-root marker file, an
+   `AGENTS.md`, whatever this project uses.
+
+   **That pattern is this skill's vocabulary, and on either pull trigger it is too narrow.** List what
+   the project actually loads and add each skill's own terms and filenames to it.
 
    Classify **every** hit as one of three things, and act:
 
-   | Hit                                                                    | Do                                                      |
-   |------------------------------------------------------------------------|---------------------------------------------------------|
-   | A **choice** — this project's vocabularies, layout, axis, own commands | Keep                                                    |
-   | A **mechanic** — a tool, a flag, a hazard, a format this skill defines | Delete, leave a pointer by section name                 |
-   | A **declared deviation** — this project genuinely differs              | Keep, and make it say *that it is a deviation, and why* |
+   | Hit                                                                     | Do                                                      |
+   |-------------------------------------------------------------------------|---------------------------------------------------------|
+   | A **choice** — this project's vocabularies, layout, axis, own commands  | Keep                                                    |
+   | A **mechanic** — a tool, a flag, a hazard, a format this skill defines  | Delete, leave a pointer by section name                 |
+   | A **declared deviation** — this project genuinely differs               | Keep, and make it say *that it is a deviation, and why* |
+   | **Subject matter** — a note whose topic *is* a tool this project builds | Keep                                                    |
 
-   The third is the one that gets mislabelled in both directions. A project pinning an older toolbox
-   is a deviation worth stating; a project describing how `awt` works because someone once found it
-   useful is a copy.
+   The last two are the ones that get mislabelled, in both directions. A project pinning an older
+   toolbox is a deviation worth stating; a project describing how `awt` works because someone once
+   found it useful is a copy. And a note telling you how to use a tool is a copy, while a note
+   arguing what that tool should become is the project's own work — a wiki whose subject is its own
+   tooling is full of the second kind.
 
 4. **Sweep for mechanics that have gone stale.** Any local sentence naming a command, flag, tool or
    field that **no longer appears anywhere in this skill** is either a deviation (step 3, row three)

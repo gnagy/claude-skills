@@ -117,6 +117,9 @@ so, with the reason, so the absence reads as a decision rather than an oversight
 **No `meta/interop.md` means no inbox — do not write to that repo.** Accepting messages is an opt-in
 its owner declares, not a default a sender may assume.
 
+**None of this applies to answering a message you were sent** — its `inbox:` field is the declaration,
+and the lookup above is for a wiki you are writing to first.
+
 ## Sending a message to another wiki
 
 Rule 1 says don't edit their notes; this is the sanctioned alternative. The receiving project has an
@@ -139,6 +142,7 @@ Filename `YYYY-MM-DD-<sender>-<slug>.md`:
 ---
 from: <sending wiki>
 date: <YYYY-MM-DD>
+inbox: <path to the sender's own inbox, as the receiver can reach it>
 about: <uri in the receiving wiki, if it concerns an existing note>
 evidence: <wiki>:<uri>          # where the reasoning lives — a pointer, never a copy
 ---
@@ -146,12 +150,20 @@ evidence: <wiki>:<uri>          # where the reasoning lives — a pointer, never
 What is claimed, what would settle it, and what you want back — if anything.
 ```
 
-**Four fields, and no message type.** An earlier version fixed a `kind` vocabulary —
+**Five fields, and no message type.** An earlier version fixed a `kind` vocabulary —
 `correction | contribution | verification-request | drift-notice` — and it did not survive contact:
 across fifteen real messages senders reached for it four times, always for the same value, and
 otherwise wrote their own. The classification never changed what a receiver did, nothing mechanical
 reads these files, and a closed vocabulary no machine enforces is a schema you can only fail. **Say
 what happened in the body, in your own words.**
+
+**`inbox:` is a return address, not a request for a reply.** `from:` is a wiki's name, not a place, and
+`docs/wiki-inbox/` means nothing without knowing where that checkout is — so a receiver who wants to
+answer has to go and find the sender, and that search can fail. It has: one message arrived whose
+sender's repo the receiver could not locate at all, and no reply was possible whatever it decided.
+The field costs the sender a line. Give the path a session on this machine can open, and treat an
+inbound one as authoritative for the reply target — holding it means you do not need to read their
+`meta/interop.md` first, because writing it *is* their opt-in.
 
 **Resolving one:** fold it into a real note with its own `verified` entry, citing the message's
 `evidence` in `sources`, then **delete the inbox file**. Deletion is the close, and the resulting note
@@ -172,16 +184,25 @@ until it went stale.
 
 ### Replying
 
-**Reply when the sender needs something back that only you can write** — a decision, a ruling on their
-proposal, an answer they are waiting on. Write it into their inbox like any other message, with
+**Default to not replying, and ask before you do.** The person who set the exchange up is usually
+working both sides and moves between the sessions themselves, so a decision reaches the sender through
+them sooner than through a file. That makes most replies redundant, and an acknowledgement always so:
+it says nothing the sender cannot infer, and costs another session a re-read, a fold and a delete.
+
+**Ask the user with the answer already in hand** — what you would send, and to whom. They can see
+whether the other session is still open and whether it is stuck on this; from here you cannot. Do not
+send one on your own judgement.
+
+**Skipping the reply never means skipping the ruling.** Deleting the message destroys the only copy
+of what was asked, so the decision has to land in a note here and in what you report back, whether or
+not anything is written into their inbox.
+
+**When a reply is wanted, it is because the sender is blocked on something only this side can write** —
+a decision, a ruling on their proposal. Write it into the inbox their message declared, with
 `evidence` pointing at the note where the decision now lives, so they get something durable to cite
 rather than a claim to copy.
 
-**A reply is never itself replied to.** One round trip is the maximum, which is what keeps this from
-becoming acknowledgement traffic — the failure mode a blanket "never reply" rule was originally
-written to prevent. It prevented the useful half too: in one two-day exchange, five of six inbound
-messages asked for a decision the sender could not make, and answering them was the only way the work
-moved.
-
-**When it is unclear whether an answer is wanted, reply.** An unwanted reply is one file the sender
-deletes; a missing one leaves them blocked, and you cannot see that from here.
+**A reply is never itself replied to.** One round trip is the maximum, and that ceiling is what lets
+the useful case exist at all: in one two-day exchange, five of six inbound messages asked for a
+decision the sender could not make, and answering them was the only way the work moved. A blanket
+"never reply" rule was tried first and killed that half along with the noise.

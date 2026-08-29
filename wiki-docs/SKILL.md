@@ -38,6 +38,13 @@ against some earlier version of this file, nothing updates it, and it reads as l
 agent. Delete it and leave a pointer: a documentation fix, not a decision to raise. Changing a
 *choice* is the opposite — that is the project's, and yours to ask about rather than edit.
 
+**Extracting a wiki's own notes into a skill flips their authority the day it lands.** They were the
+authority right up until the skill existed; afterwards they are the stale copy above, and the worst
+kind of it — local, detailed, and outranking the skill for everyone already working in that repo.
+**Reduce them to choices, or mark them superseded, as part of the extraction**, not as a later
+cleanup: between the two there is a window where both exist and the wrong one wins. `adoption.md` §3
+carries the extraction as a sweep trigger.
+
 **Refer, never quote.** Point at this skill by name and section heading — *"see the `wiki-docs` skill,
 'Editing'"* — so the reference survives an edit inside that section. A copied sentence does not, and a
 copied command, flag or field name is the form that fails silently, because it still looks
@@ -438,10 +445,15 @@ its `CLAUDE.md`, and the thing that catches the sessions ignoring it is a `PreTo
 wiki path. Both are shipped here as fixed text, so that a project holds a pointer with no content in
 it to go stale — the failure this whole split exists to prevent.
 
-**Read `adoption.md` beside this file** when installing this skill into a project, when a new release
-of it lands, or when asked to bring a project's `CLAUDE.md` and `meta/` notes up to date with it. It
-carries the `CLAUDE.md` block to paste verbatim, the guard hook and its limits, and the sweep that
-finds local text which has drifted out of step with this file.
+**Read `adoption.md` beside this file** when installing this skill into a project or when a new
+release of it lands — and on four triggers that have no event behind them: **having just written or
+rewritten a `meta/` note or that block**, **having extracted content out of a wiki into a skill**, and
+**any request to reconcile a project's local files with the skills it uses**, whether that is asked as
+*is `meta/` still in step*, *why do these two disagree*, or *clean up the duplication in here*. The
+last kind is this sweep under another name, and a pass that never opens a skill cannot see the copy or
+the conflict that matters, nor settle one once it has. `adoption.md` carries the
+`CLAUDE.md` block to paste verbatim, the guard hook and its limits, and the sweep itself, with the
+subset of it each trigger runs.
 
 ---
 
