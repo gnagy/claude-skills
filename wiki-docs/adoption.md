@@ -29,6 +29,7 @@ goes above the markers, where the project owns it:
 `docs/wiki/` is this project's wiki. <!-- the root, and any other project fact, lives out here -->
 
 <!-- wiki-docs:begin — managed by the wiki-docs skill; replace wholesale, never edit in place -->
+
 **All wiki work goes through the `wiki-docs` skill** — reading, searching, editing, restructuring,
 renaming, bulk operations, and any script or shell command that touches those files. Load it before
 the first wiki file is opened, not after something looks wrong.
@@ -41,12 +42,21 @@ everything else they point at the skill by section name.
 
 **Nothing except the tool is evidence about the tool.** Not a `meta/` note, not your own system
 prompt, not a habit from another project. Check `awt --help` before concluding it cannot do something.
+
 <!-- wiki-docs:end -->
 ```
 
 The markers are the whole mechanism: they make re-adoption a replacement rather than a judgement
 call, and they make an in-place edit visible as one. **If you find the block edited, the edit is the
 bug** — replace it and move whatever the edit was trying to say to the project-owned side.
+
+**A formatter reflowing the block is not an edit.** The blank lines inside the markers are there
+because a markdown formatter puts them there — `mdfmt` rewrites the tight form into this one and then
+leaves it alone — so what is above is already a fixed point rather than something a project's own
+formatting pass will fight. Wrap width still differs between projects, so **the rule is about the
+words, not the bytes**: if whitespace is the only difference, nothing is wrong. If more than
+whitespace differs, or you cannot tell, replace the block instead of adjudicating it — replacement is
+wholesale and costs nothing, which is why it is the default and the comparison is only a shortcut.
 
 ## 2. The guard hook
 
@@ -175,8 +185,9 @@ authority about this project's choices. Resolving one on which text reads more c
 stale copy wins, and the note it beat is the one that was right.
 
 **Under the authoring trigger, step 2 is a verification rather than a replacement.** Check the block
-is still the verbatim text from §1. A session that has just rewritten `CLAUDE.md` by hand is the
-likeliest one to have edited inside the markers, which §1 calls the bug.
+still says what §1 says — the words, not the bytes, for the formatting reason given there. A session
+that has just rewritten `CLAUDE.md` by hand is the likeliest one to have edited inside the markers,
+which §1 calls the bug. Anything beyond whitespace, or any doubt, and you do the replacement.
 
 Steps 1 and 5 belong to a release: you cannot diff against a version you never read, and the guard
 hook's `WIKI_ROOT` only moves when the project's layout does.
