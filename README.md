@@ -3,20 +3,23 @@
 Reusable [Claude Code](https://claude.com/claude-code) skills, kept in one place so several projects
 can share them instead of each growing its own copy.
 
-| Skill               | Use it when                                                             |
-|---------------------|-------------------------------------------------------------------------|
-| `bro`               | The last message needs saying again without the jargon                  |
-| `campaign-delivery` | Running campaign-based delivery: requests, campaigns, features, roadmap |
-| `grill-with-wiki`   | Stress-testing a plan or design, capturing the outcome into the wiki    |
-| `markdown-remark`   | Formatting, linting, or validating markdown; before any bulk reformat   |
-| `technical-writing` | Writing or reviewing a doc, RFC, wiki note, PR description or commit    |
-| `unslop`            | Stripping the AI tells out of prose that is about to ship               |
-| `wiki-docs`         | Reading or editing the project wiki; wiring a project to that skill     |
+| Skill               | Use it when                                                                                |
+|---------------------|--------------------------------------------------------------------------------------------|
+| `atlas`             | Orienting across repos and checkouts: what is here, what it belongs to, what depends on it |
+| `bro`               | The last message needs saying again without the jargon                                     |
+| `campaign-delivery` | Running campaign-based delivery: requests, campaigns, features, roadmap                    |
+| `grill-with-wiki`   | Stress-testing a plan or design, capturing the outcome into the wiki                       |
+| `markdown-remark`   | Formatting, linting, or validating markdown; before any bulk reformat                      |
+| `technical-writing` | Writing or reviewing a doc, RFC, wiki note, PR description or commit                       |
+| `unslop`            | Stripping the AI tells out of prose that is about to ship                                  |
+| `wiki-docs`         | Reading or editing the project wiki; wiring a project to that skill                        |
 
-`bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they run on
-`/bro` and `/technical-writing` and never load themselves. `bro` restates the previous message, which
-only makes sense when a human asks; `technical-writing` is a deliberate review pass whose body is too
-large to fire on every doc-touching turn. `unslop` stays model-invocable, because it is the catalog
+`atlas`, `bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they
+run on `/atlas`, `/bro` and `/technical-writing` and never load themselves. `bro` restates the
+previous message, which only makes sense when a human asks; `technical-writing` is a deliberate
+review pass whose body is too large to fire on every doc-touching turn; `atlas` walks a tree and
+writes marker files into it, which is work to ask for rather than work to start on a prompt that
+sounded close. `unslop` stays model-invocable, because it is the catalog
 the others defer to.
 
 ## Installing
