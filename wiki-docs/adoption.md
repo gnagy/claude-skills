@@ -77,6 +77,14 @@ why**, the same as step 3's third row.
 ```bash
 #!/usr/bin/env bash
 # Nudge an agent into the wiki-docs skill the first time it touches the wiki.
+#
+# MANAGED BY THE wiki-docs SKILL — DO NOT EDIT. A new release replaces this file wholesale,
+# so an edit here is lost silently on the next adoption sweep, and until then it is a copy
+# nothing propagates a fix to. Project-specific guarding belongs in a SEPARATE hook beside
+# this one, registered as its own entry in .claude/settings.json: that keeps this file a
+# straight copy the skill can overwrite with no merge and no judgement call. WIKI_ROOT below
+# is the one line a project owns.
+#
 # Fails open by design: anything wrong here lets the tool call through.
 set -u
 
