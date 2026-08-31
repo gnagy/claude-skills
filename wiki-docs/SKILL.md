@@ -154,19 +154,23 @@ to look at before coining a tag that already nearly exists.
 
 ### Writes
 
-Available only when the server runs with `--allow-writes`. All seven are graph-affecting: they are the
-edits that corrupt something when done by hand.
+Available only when the server runs with `--allow-writes`. Each is something that corrupts the wiki
+when done by hand:
 
-| Tool                               | Instead of                                                |
-|------------------------------------|-----------------------------------------------------------|
-| `rename` · `move`                  | `mv`, which silently breaks every inbound link            |
-| `delete`                           | `rm`, which leaves nothing to tell you what pointed at it |
-| `split_by_heading` · `merge_files` | Re-emitting both documents as tokens                      |
-| `rename_tag`                       | `sed`, which cannot tell front matter from prose          |
-| `build_listing`                    | Hand-maintaining the notes table in `index.md`            |
+| Tool                               | Instead of                                                           |
+|------------------------------------|----------------------------------------------------------------------|
+| `rename` · `move`                  | `mv`, which silently breaks every inbound link                       |
+| `delete`                           | `rm`, which leaves nothing to tell you what pointed at it            |
+| `split_by_heading` · `merge_files` | Re-emitting both documents as tokens                                 |
+| `rename_tag`                       | `sed`, which cannot tell front matter from prose                     |
+| `build_listing`                    | Hand-maintaining the notes table in `index.md`                       |
+| `fmt`                              | Aligning a table by hand, or any formatter that is not the toolbox's |
 
-**Ordinary prose edits are yours**, with `Write` and `Edit`. The index is recomputed on the next call,
-so nothing has to be told an edit happened.
+**Ordinary prose edits are yours**, with `Write` and `Edit` — and they are exactly what `fmt` is for.
+The verbs above already serialise everything they write, so the unformatted markdown in a wiki is the
+prose you wrote yourself. Its `paths` are workspace-relative like every other tool's, and no path
+means the whole wiki; `dryRun` is what the CLI calls `--check`. The index is recomputed on the next
+call, so nothing has to be told an edit happened.
 
 Three things about how they behave, all of which change how you use them:
 
@@ -243,8 +247,8 @@ Read `meta/conventions.md` first. Beyond whatever it says:
 - **Always format markdown tables.** Never leave a ragged `|---|---|` table behind.
 - No secrets, ever — the wiki is committed.
 
-Tables are written as aligned rectangles, not left ragged — `awt fmt` does it, and
-`meta/conventions.md` says which delimiter style this project uses.
+Tables are written as aligned rectangles, not left ragged — the `fmt` tool does it, `awt fmt` is the
+same thing from a shell, and `meta/conventions.md` says which delimiter style this project uses.
 
 ### No display-text overrides
 
@@ -345,8 +349,10 @@ not the edges.
 
 ## Markdown tooling: `awt`
 
-**Format a wiki with `awt fmt`.** It is the toolbox's own formatter, and it is wikilink-aware — which
-is the whole reason not to reach for anything else here (see the hazard below).
+**Format a wiki with the `fmt` tool, or with `awt fmt` from a shell.** They are one formatter, the
+toolbox's own, and it is wikilink-aware — which is the whole reason not to reach for anything else
+here (see the hazard below). On the command line it takes `-w` like every other subcommand, so a note
+path is a note path there too: `awt fmt -w <wiki-root> meta/conventions.md`.
 
 > **`awt` is a standalone CLI, not a project pipeline.** It carries its own config and plugins, so it
 > formats any directory without that project installing anything — it works in a repo with no
