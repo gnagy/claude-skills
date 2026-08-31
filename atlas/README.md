@@ -67,8 +67,11 @@ migrations, some in repositories you cannot write to.
 ## Using it as a Claude Code skill
 
 `atlas` is a [Claude Code](https://claude.com/claude-code) skill in
-[gnagy/claude-skills](https://github.com/gnagy/claude-skills). It is manual-only — it never loads
-itself, and runs on `/atlas`. To install it from a clone of that repository:
+[gnagy/claude-skills](https://github.com/gnagy/claude-skills). It loads itself on a question about
+what a directory is or belongs to, or on a tree with an `atlas.md` in it, and runs on `/atlas` when
+you want it deliberately. **Loading it is not permission to write** — the skill's own body says
+markers are written when asked and a walk is started by a person. To install it from a clone of that
+repository:
 
 ```shell
 npx skills add "$PWD" --skill atlas --agent claude-code --agent universal -g -y

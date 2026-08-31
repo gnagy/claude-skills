@@ -1,7 +1,6 @@
 ---
 name: atlas
-description: Orientation across projects, workspaces, repos and checkouts — what a directory is, what it is a member of, and what depends on it. The catalogue model, the `atlas.md` marker file, and the cleanup and bootstrap workflows. Runs on `/atlas`.
-disable-model-invocation: true
+description: Use this skill when orienting across projects, workspaces, repos and checkouts — what a directory is, which project it is a member of, what depends on it, or what has to be cloned and installed before a task can run. Also when a tree contains an `atlas.md` marker file, or when asked to walk a tree and work out what is in it. Covers the catalogue model, the marker format, and the cleanup and bootstrap workflows. Runs on `/atlas` as well.
 ---
 
 # Atlas
@@ -20,6 +19,13 @@ A **catalogue** is where those answers get recorded, so nobody works them out tw
 holding membership, placement and dependency, and nothing a tool can already read for itself.
 **Atlas** is the model they are written in, so one person's catalogue is readable by someone else's
 agent.
+
+**Reading this is free; acting on it is not.** Answer from it — what a directory is, what it belongs
+to, what depends on it — whenever the question comes up. **Writing is asked for, never volunteered:**
+an `atlas.md` is written when someone asks for one, and a walk of a tree is started by a person.
+Noticing that a tree would be easier to work in with markers in it is worth one sentence to whoever
+owns the tree; it is not a reason to start writing them. The catalogue records what somebody decided,
+so a marker nobody asked for records a decision nobody made.
 
 ---
 
@@ -144,6 +150,8 @@ A tree can declare its own place with an `atlas.md`, so a catalogue does not hav
 ---
 
 ## Workflows
+
+**Both of these are asked for.** They walk a tree, and one of them writes files into it.
 
 **Cleaning up an existing tree.** Walk it and ask of each directory: is this a unit, and which one.
 Three answers do most of the work.

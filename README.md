@@ -14,13 +14,18 @@ can share them instead of each growing its own copy.
 | `unslop`            | Stripping the AI tells out of prose that is about to ship                                  |
 | `wiki-docs`         | Reading or editing the project wiki; wiring a project to that skill                        |
 
-`atlas`, `bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they
-run on `/atlas`, `/bro` and `/technical-writing` and never load themselves. `bro` restates the
-previous message, which only makes sense when a human asks; `technical-writing` is a deliberate
-review pass whose body is too large to fire on every doc-touching turn; `atlas` walks a tree and
-writes marker files into it, which is work to ask for rather than work to start on a prompt that
-sounded close. `unslop` stays model-invocable, because it is the catalog
-the others defer to.
+`bro` and `technical-writing` are **manual-only** (`disable-model-invocation: true`): they run on
+`/bro` and `/technical-writing` and never load themselves. `bro` restates the previous message, which
+only makes sense when a human asks; `technical-writing` is a deliberate review pass whose body is too
+large to fire on every doc-touching turn. Everything else, `unslop` and `atlas` included, is
+model-invocable.
+
+**Restraint belongs in the body when only part of a skill is dangerous.** `atlas` was manual-only for
+a fortnight on the argument that it walks trees and writes marker files into them — but its questions
+(what is this directory, what does it belong to) are exactly what an agent should be able to answer
+unasked, and the flag suppressed the answering to stop the writing. The body now carries the rule the
+flag was standing in for: read from it freely, write markers and start walks only when asked. Reach
+for the flag when the *whole* skill is a deliberate act, not when its expensive half is.
 
 ## Installing
 
