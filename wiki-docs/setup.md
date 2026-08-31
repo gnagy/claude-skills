@@ -35,22 +35,6 @@ Mount them as additional servers, with an absolute path and **no** `--allow-writ
 }
 ```
 
-### The older server, and why a project may still have it
-
-`foam-cli mcp` served this role before the toolbox existed, and a project part-way through the switch
-runs **both**: the toolbox as the graph, Foam as an independent check on it. That is deliberate and is
-not something to tidy up — the second opinion is the only thing that can catch the first being wrong.
-
-```json
-"foam-wiki": {
-  "command": "npx",
-  "args": ["-y", "foam-cli", "mcp", "--allow-writes", "--workspace", "docs/wiki"]
-}
-```
-
-Retiring it is the owning project's call, and belongs after the two have been seen to agree across
-real edits — not on the day the toolbox is installed.
-
 Which project mounts which is not free choice: mount only down the dependency — see *Which way a
 mount points* in `interop.md` beside this file.
 
