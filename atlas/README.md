@@ -9,7 +9,8 @@ An `atlas.md` describes the directory it sits in, for whoever has just landed th
 context. Three fields carry it:
 
 - **`atlas:`** — what the directory is. One of `project`, `workspace`, `checkout`, `material`,
-  `aggregation` (a container holding children it does not own), or `none` (not a unit at all).
+  `aggregation` (a container holding children it does not own), or `unknown` (looked at, not yet
+  worked out).
 - **`spec:`** — where the format is defined. The URL that brought you here, and the same in every
   marker.
 - **`authority:`** — who owns the facts about this region. A clonable repository means the region is
@@ -49,20 +50,11 @@ documentation, its own conventions and its own build.
 
 ## What is in this directory
 
-| File        | What it is                                                                |
-|-------------|---------------------------------------------------------------------------|
-| `SKILL.md`  | The model — units, relations, workspaces, and the workflows that use them |
-| `marker.md` | The `atlas.md` specification, and how to walk a tree that has them        |
-
-## Status
-
-**Alpha, and honest about it.** The model was derived from reading real directory trees and has been
-exercised once, against a single client tree. No catalogue exists yet, and no `atlas.md` has been
-committed anywhere. The format has already changed once in response to that first walk, and it will
-change again.
-
-**If you are writing markers now, write few.** A field renamed after thirty of them exist is thirty
-migrations, some in repositories you cannot write to.
+| File         | What it is                                                        |
+|--------------|-------------------------------------------------------------------|
+| `SKILL.md`   | The model — units, relations, and writing and keeping a catalogue |
+| `marker.md`  | The `atlas.md` specification                                      |
+| `walking.md` | Working out what is in a tree nobody has catalogued yet           |
 
 ## Using it as a Claude Code skill
 
@@ -75,4 +67,4 @@ repository, run the `skills add` command in that repo's own `README.md` with `--
 flags carry two traps, and they are explained beside it there rather than copied here.
 
 Nothing else in this directory depends on Claude Code. `marker.md` is a file format any agent or
-person can read, and the model in `SKILL.md` is prose.
+person can read, and the model in `SKILL.md` and `walking.md` is prose.

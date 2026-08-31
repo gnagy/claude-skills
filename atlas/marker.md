@@ -28,15 +28,27 @@ authority: git@github.com:acme/acme-project.git
 
 **`atlas` takes one value:**
 
-| Value                                             | Means                                            |
-|---------------------------------------------------|--------------------------------------------------|
-| `project` · `workspace` · `checkout` · `material` | The unit it is, as `SKILL.md` defines them       |
-| `aggregation`                                     | A container holding children it does not own     |
-| `none`                                            | Not a unit at all — a directory that accumulated |
+| Value                                             | Means                                        |
+|---------------------------------------------------|----------------------------------------------|
+| `project` · `workspace` · `checkout` · `material` | The unit it is, as `SKILL.md` defines them   |
+| `unknown`                                         | Nobody has worked out what this is yet       |
+| `aggregation`                                     | A container holding children it does not own |
 
-The last two are not units, deliberately. A walk has to be able to say what a directory is *not*, and
-those are the two commonest such answers on a real tree. `repo` never appears here either: a
-directory holds a checkout, and the repo is the identity behind it.
+`repo` never appears here: a directory holds a checkout, and the repo is the identity behind it.
+
+**`unknown` is an answer, and on a first pass it is usually the right one.** It says somebody looked
+and could not tell, which is a different fact from an absent marker, and it is the only one of these
+values a walk may write on its own — see *Unknown is an answer, not a failure* in `walking.md`.
+
+**`aggregation` is a verdict, and it comes from a person.** It says a directory is real and does not
+own what is under it, which needs to know what the directory is *for* — and nothing on disk carries
+that. Written from a walk alone it is a guess wearing the same clothes as the rest of the file.
+
+**There is no value for "not a thing at all", deliberately.** A marker exists to say what a directory
+is; one saying there is nothing to say has said nothing, and most directories have no marker anyway,
+so it cannot even be read as *somebody looked*. Where a walk decides a directory is not a unit, that
+belongs in the entry for whatever contains it, with the reason — see *Checking it rather than
+asserting it* in `SKILL.md`.
 
 **`spec` is what makes the file self-describing.** An agent that finds one in a repository it has
 never seen has no skill loaded and no reason to guess; the URL is the whole of its way in. It is
@@ -51,8 +63,9 @@ agent starting cold can go and read it.
 defer to it. Leaving the field out lets them say so, instead of leaving a walker to conclude that a
 `.git` directory marks a boundary.
 
-If a directory fits none of the `atlas` values, **say so in the file and leave it unclassified.** A
-misfit you can see is worth more than a wrong label that looks correct.
+If a directory fits none of the `atlas` values, **write `unknown` and say in the body what did not
+fit.** A misfit you can see is worth more than a wrong label that looks correct, and a misfit with a
+value is worth more than one buried in prose, because it can be counted and come back to.
 
 ## Describing somewhere else
 
@@ -177,13 +190,6 @@ manuals. The filenames are serial numbers and say nothing about the contents. No
 re-fetch from, so this is irreplaceable.
 ```
 
-## Walking a tree
+## Walking a tree that has them
 
-1. Descend. At each directory, look for an `atlas.md`.
-2. With **no `authority`**, fold the marker into what you know about the region and keep descending.
-3. With an **`authority`**, record the delegation and stop descending. Everything below belongs to
-   that authority — `self` means the thing catalogues itself, a reference means clone it and read it.
-4. On a **describes-elsewhere** marker, record it against the stated target and treat the directory it
-   sits in as if the file were not there.
-5. With **no marker**, infer as usual. Most directories will never have one, and a tree with no
-   markers at all must still be walkable.
+How markers change a descent is in `walking.md` beside this file, with the rest of the walk.
