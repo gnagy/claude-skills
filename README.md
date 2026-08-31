@@ -63,8 +63,11 @@ skill is being worked on.
 isolation: every half-finished edit becomes live for every session at once. If a skill needs
 tighter feedback than reinstalling gives, reinstall more often.
 
-A session that has already *invoked* a skill keeps its loaded copy until it is invoked again, so
-verify a change in a fresh session.
+Claude Code watches the skill directories, so an added or reinstalled skill is picked up
+**mid-session**; `/reload-skills` forces a re-scan and reports the count. Two exceptions: a top-level
+skills directory that did not exist at session start needs a restart, and a session that has already
+*invoked* a skill keeps its loaded copy until it is invoked again. Verify a change in a fresh
+session.
 
 ## Writing one
 
