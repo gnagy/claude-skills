@@ -255,6 +255,13 @@ hook's `WIKI_ROOT` only moves when the project's layout does.
    or a leftover. Leftovers are the ones that do damage — they are confidently wrong rather than
    merely redundant.
 
+   **One standing rewrite the test above cannot reach: a local file naming any formatter other than
+   `awt fmt` as the command for *this wiki* is stale, and the replacement is `awt fmt`.** It escapes
+   the test because the other name is still a live command elsewhere — `mdfmt` formats a README
+   perfectly well and `markdown-remark` still documents it — so the hit reads as current rather than
+   as a leftover. Rewrite it anyway, including where the note says both work. See *Markdown tooling*
+   in `SKILL.md` for why identical output is not the point.
+
 5. **Replace the guard hook** with the script in §2, wholesale, carrying this project's `WIKI_ROOT`
    across — then check it is executable and that `WIKI_ROOT` still matches `.mcp.json`. Add it if it
    is missing, and say so.

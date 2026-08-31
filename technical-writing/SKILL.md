@@ -179,7 +179,8 @@ Two of its rules interact with the layers above, and `unslop` is the one that wi
 - PR descriptions and commit messages are writing too. Every layer except Diátaxis applies to them.
 - Product UI strings are not documentation. Those follow the product's copy guidelines.
 - Match the file's existing indentation and list style rather than importing another project's.
-  `mdfmt` settles markdown formatting; see `markdown-remark`.
+  The project's own formatter settles markdown formatting, never hand-alignment — `wiki-docs` owns it
+  for a wiki, `markdown-remark` for anything else.
 - Write real paths and real symbols. Make every count and every tree claim true at the commit that
   lands it, and include the command that regenerates it.
 

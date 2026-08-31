@@ -94,4 +94,4 @@ Four conflicts come up repeatedly. The wiki rule wins each time.
 6. Is the note reachable — an `index.md` entry or a link from a note that has one?
 7. Did the edit change the link graph? Run the `foam lint` and placeholder checks from `wiki-docs`.
    A rewritten paragraph that dropped a link shows up nowhere else.
-8. Run `mdfmt` rather than hand-aligning tables (see `markdown-remark`).
+8. Run `awt fmt` rather than hand-aligning tables (see `wiki-docs`).

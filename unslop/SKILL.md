@@ -156,7 +156,7 @@ rewriting prose:
   touch *"these two sources disagree; unverified"*, which is a fact about the state of knowledge and
   is what a wiki is for. Cut the hedge, keep the open question.
 
-Do not hand-fix tables, escaping or curly quotes in a wiki: run `mdfmt` (see `markdown-remark`).
+Do not hand-fix tables, escaping or curly quotes in a wiki: run `awt fmt` (see `wiki-docs`).
 After a bulk pass, verify the graph rather than the text — `foam lint` and a `grep -c '\[\['` count
 before and after. `wiki-docs` has the commands.
 

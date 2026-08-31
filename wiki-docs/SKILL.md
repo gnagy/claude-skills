@@ -357,6 +357,12 @@ is the whole reason not to reach for anything else here (see the hazard below).
 > as the second. Check `awt --version` before hand-aligning a table or writing a script to do it; if
 > it isn't on `PATH`, say so rather than reinventing it.
 
+**It is the only formatter for a wiki, and "the other one works too" is not an exception.** Another
+formatter producing identical output on this wiki today is not a reason to name it in a `meta/` note:
+what is being bought is a guarantee, and two commands that happen to agree is not one that cannot
+disagree. A note offering both — *"either one does"* — is the drift itself, and it is written by
+someone who checked and was right about the output, which is exactly why it does not read as an error.
+
 **Reach for `markdown-remark` only when the target is not a wiki** — a README, a `CLAUDE.md`, a docs
 tree with no link graph in it. That skill owns the remark toolchain itself: config, plugins, and how to
 verify a formatter before it writes. For wiki work, `awt` is the tool and this file is the authority.

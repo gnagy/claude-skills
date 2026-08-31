@@ -17,8 +17,8 @@ That is the whole skill. The rest is what it must not turn into.
 - **It is not a summary.** Same content, plainer words. Dropping half the message is a different
   request, and dropping the half the user needed is how this fails.
 - **Real names survive.** File paths, symbols, commands and flags are the plain words here. Replace
-  the metaphor, keep `mdfmt --check`. "The formatter run that fails CI" is jargon removal;
-  "the checking thing" is information loss.
+  the metaphor, keep `git rebase -i`. "Rewriting the last few commits" is jargon removal;
+  "the history thing" is information loss.
 - **Say the thing you were dancing around.** Most jargon in a message is hiding an uncomfortable
   answer: it did not work, it is slower than expected, you are guessing. Plain language means the
   guess is labelled a guess.
