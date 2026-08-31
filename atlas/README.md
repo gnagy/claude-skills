@@ -71,11 +71,8 @@ migrations, some in repositories you cannot write to.
 what a directory is or belongs to, or on a tree with an `atlas.md` in it, and runs on `/atlas` when
 you want it deliberately. **Loading it is not permission to write** — the skill's own body says
 markers are written when asked and a walk is started by a person. To install it from a clone of that
-repository:
-
-```shell
-npx skills add "$PWD" --skill atlas --agent claude-code --agent universal -g -y
-```
+repository, run the `skills add` command in that repo's own `README.md` with `--skill atlas` — the
+flags carry two traps, and they are explained beside it there rather than copied here.
 
 Nothing else in this directory depends on Claude Code. `marker.md` is a file format any agent or
 person can read, and the model in `SKILL.md` is prose.
