@@ -42,6 +42,17 @@ Into the current project rather than user-level — drop `-g`:
 npx skills add "$PWD" --skill wiki-docs --agent claude-code --agent universal -y
 ```
 
+From GitHub instead of a clone — another machine, another person, and it serves whatever is
+*committed*:
+
+```shell
+npx skills add gnagy/claude-skills --skill '*' --agent claude-code --agent universal -g -y
+```
+
+Two things work **only** from a GitHub source: `npx skills update` (it does not refresh local-path
+sources at all), and a project-level install, whose `skills-lock.json` then records a portable
+`owner/repo` rather than one machine's absolute path.
+
 Each of these writes one canonical copy to `~/.agents/skills/<name>/` and symlinks it into the
 agent's directory (`~/.claude/skills/`). That layout is the point: one file, many agents, nothing
 that can drift.
