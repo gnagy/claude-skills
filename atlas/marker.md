@@ -4,9 +4,7 @@ An `atlas.md` lets a directory declare its own place, so a catalogue does not ha
 from build files, IDE configuration and guesswork. One file, findable anywhere, readable by any
 catalogue.
 
-It is a declaration rather than a derivation, which makes it the file in this model most likely to
-fill up with things a tool could have read for itself. The prohibitions below matter more than the
-permissions.
+The prohibitions below matter more than the permissions.
 
 ## Front matter
 
@@ -38,21 +36,17 @@ authority: git@github.com:acme/acme-project.git
 
 **`unknown` is an answer, and on a first pass it is usually the right one.** It says somebody looked
 and could not tell, which is a different fact from an absent marker, and it is the only one of these
-values a walk may write on its own — see *Unknown is an answer, not a failure* in `walking.md`.
+values a walk may write on its own — see *Unknown is an answer* in `walking.md`.
 
 **`aggregation` is a verdict, and it comes from a person.** It says a directory is real and does not
 own what is under it, which needs to know what the directory is *for* — and nothing on disk carries
 that. Written from a walk alone it is a guess wearing the same clothes as the rest of the file.
 
-**There is no value for "not a thing at all", deliberately.** A marker exists to say what a directory
-is; one saying there is nothing to say has said nothing, and most directories have no marker anyway,
-so it cannot even be read as *somebody looked*. Where a walk decides a directory is not a unit, that
-belongs in the entry for whatever contains it, with the reason — see *Checking it rather than
-asserting it* in `SKILL.md`.
+**There is no value for "not a thing at all".** Where a walk decides a directory is not a unit,
+that goes in the catalogue entry for whatever contains it, with the reason — see *Keeping a
+catalogue* in `SKILL.md`.
 
-**`spec` is what makes the file self-describing.** An agent that finds one in a repository it has
-never seen has no skill loaded and no reason to guess; the URL is the whole of its way in. It is
-boilerplate, identical everywhere, and that is the point.
+**`spec` is the same URL in every marker.** It is the way in for an agent that has never seen one.
 
 **`authority` decides descent, and absent means the enclosing authority still owns this.** That is the
 ordinary case — most markers annotate without claiming anything. `self` says this thing is its own
@@ -110,11 +104,12 @@ So: **name where to get what is missing, and say nothing about the origin of wha
 is *Derive, don't transcribe*'s second exception, and `authority` is the case that matters most —
 clone it and the catalogue holds the rest.
 
-## A project root always carries one
+## A project root carries one; below it, a marker earns itself
 
-A project root is where anyone lands, and what a marker says there — what this is, who owns the facts
-about it, what is directly below — is never in a listing. Put one there whatever the project's
-documentation looks like; it is a different question from how well the project explains itself.
+A project that adopts atlas puts a marker at its root, whatever its documentation looks like: what
+this is, who owns the facts, and what is directly below are never in a listing. Below a root, write
+one only where the contents do not already say what the thing is, and expect to write few. Being
+asked for one is what starts it, in both cases.
 
 **`atlas.md` and `atlas/` are different things, and a repo hosting a catalogue has both:**
 
@@ -127,13 +122,8 @@ documentation looks like; it is a different question from how well the project e
 its entry point. A repo that hosts no catalogue has the marker and no directory — which is most of
 them.
 
-## A marker must earn itself
-
-Below a project root, write one only where the contents do not already say what the thing is. A source directory never
-needs one. A folder of scanned documents whose filenames say nothing does.
-
-The failure mode is one in every directory, most of them restating what a listing already shows. That
-buries the few that carry real information, and it is how this file stops being read.
+A source directory never needs one. A folder of scanned documents whose filenames say nothing does.
+The failure mode is one in every directory, restating what a listing already shows.
 
 ## Examples
 
