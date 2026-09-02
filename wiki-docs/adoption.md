@@ -102,9 +102,10 @@ case "$tool" in
   *) exit 0 ;;
 esac
 
-# Match WIKI_ROOT as a whole path, not a prefix: `docs/wiki-inbox/` is a sibling, and it is
-# the one path in another repo the interop protocol says to write to. The trailing space folds
-# "target ends with the root" into "root followed by whitespace".
+# Match WIKI_ROOT as a whole path, not a prefix: a sibling whose name begins with the root
+# (the old layout's `docs/wiki-inbox/` beside `docs/wiki`) must not spend the one fire, and the
+# inbox is the one path in another repo the interop protocol says to write to. The trailing
+# space folds "target ends with the root" into "root followed by whitespace".
 case "$target " in
   *"$WIKI_ROOT"/*|*"$WIKI_ROOT"[[:space:]]*|*"$WIKI_ROOT"\"*|*"$WIKI_ROOT"\'*) ;;
   *) exit 0 ;;
