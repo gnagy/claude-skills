@@ -12,8 +12,10 @@ The renderer is [Quartz](https://quartz.jzhao.xyz/) v5. It reads the wiki direct
 
 ## The project that owns the wiki builds its own site
 
-There is no central builder, and that is not an omission. A wiki always lives at `docs/wiki/` inside
-the repo that owns its subject matter, so any other arrangement means either submoduling a
+There is no central builder, and that is not an omission. A wiki always lives inside the repo that
+owns its subject matter — its notes at `wiki/notes/`, its site beside them at `wiki/site/`, both under
+the home `rootDir` names in `awt.config.mjs` (see *The layout* in `setup.md`) — so any other
+arrangement means either submoduling a
 subdirectory — git cannot — or handing a build host a credential to a repo whose markdown is the only
 part it needs. Building in place needs no cross-repo credential at all.
 
@@ -23,6 +25,10 @@ another wiki. Building is also separate from publishing — see [Build and publi
 modes](#build-and-publish-are-different-modes).
 
 ## What lives in `site/`, and what git tracks
+
+`site/` throughout this file is the site directory in the wiki's home — `wiki/site/` by default, or
+`site/` beside `docs/wiki/` in a project still on the old layout. Every `awt` command resolves it from
+the project's config; nothing here needs to be told where it is.
 
 **Do not gitignore `site/` wholesale.** Four of its entries are the site and belong in the repo; the
 other three are machine-local, rebuildable, and about 300 MB:
@@ -105,14 +111,11 @@ Quartz plugins beside it, clears the plugin cache and installs. Idempotent — r
 `quartz.pin` bump or to pick up a newly installed toolbox. `awt --version` reports which installation
 is actually running.
 
-`awt bootstrap-quartz`, `awt serve` and `awt publish` run from **anywhere inside the project** — they walk up for
-the nearest `site/quartz.config.yaml` and print the project they found. Pass `--site` / `--wiki` only
-to point at something other than the project you are standing in; those resolve against the current
-directory.
-
-> **`awt check` does not walk up.** It reads `$AWT_WORKSPACE`, else the current directory — so from a
-> repo root `awt check` reads the whole repo rather than the wiki, and reports every stray markdown
-> file outside it. Pass `-w docs/wiki`, or export `AWT_WORKSPACE=docs/wiki`.
+`awt bootstrap-quartz`, `awt serve` and `awt publish` run from **anywhere inside the project** — they
+walk up for the project's `awt.config.mjs` and take the notes and the site from the home it names.
+Pass `--site` / `--wiki` only to point at something other than the project you are standing in; those
+resolve against the current directory. `awt check` walks up the same way, so from a repo root it reads
+the wiki and not the repo.
 
 **It writes about 300 MB into `site/`**, nearly all of it Quartz's own `node_modules` — which is why
 it writes `site/.gitignore` first if the project has none yet, per
@@ -258,7 +261,7 @@ before any customisation.** They are two independent implementations of the same
 that overlap is the only one — so it is checkable, and a mismatch means the rendered site is a
 plausible lie.
 
-**The graph on disk** is `awt check -w docs/wiki`: broken links, ambiguous links, missing anchors, and
+**The graph on disk** is `awt check`: broken links, ambiguous links, missing anchors, and
 placeholders reported separately. Run it after any bulk edit. It reads files and builds nothing, so it
 is safe to run while a dev server is up.
 
@@ -340,9 +343,9 @@ not on the tool's repository, and a git source would walk straight into the no-`
       registry:
         other-wiki:
           dev: http://localhost:8101
-          buildIndex: ../../other-wiki/site/public/static/contentIndex.json
+          buildIndex: ../../../other-wiki/wiki/site/public/static/contentIndex.json
           published: https://wiki.example.com
-          publishedIndex: ../../other-wiki/site/release/static/contentIndex.json
+          publishedIndex: ../../../other-wiki/wiki/site/release/static/contentIndex.json
 ```
 
 `dev`/`buildIndex` are used in build mode and `published`/`publishedIndex` in publish mode, chosen

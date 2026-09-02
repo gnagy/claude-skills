@@ -26,7 +26,7 @@ goes above the markers, where the project owns it:
 ```markdown
 ## The wiki
 
-`docs/wiki/` is this project's wiki. <!-- the root, and any other project fact, lives out here -->
+`wiki/notes/` is this project's wiki. <!-- the root, and any other project fact, lives out here -->
 
 <!-- wiki-docs:begin — managed by the wiki-docs skill; replace wholesale, never edit in place -->
 
@@ -88,7 +88,7 @@ why**, the same as step 3's third row.
 # Fails open by design: anything wrong here lets the tool call through.
 set -u
 
-WIKI_ROOT="docs/wiki"   # this project's choice — keep it in step with .mcp.json
+WIKI_ROOT="wiki/notes"   # this project's notes: <rootDir>/notes, rootDir from awt.config.mjs
 
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -149,15 +149,19 @@ What it does and does not do, because both matter:
   not a lock: an agent that ignores the reason and retries gets through.
 - **It covers `Bash` because the bypass is `Bash`.** A harness that tells an agent to prefer `sed` and
   heredocs over `Write` routes straight around a Write-only guard. The Bash check is a text test on
-  the command, so it catches `cat > docs/wiki/x.md` and misses a script that builds the path at
+  the command, so it catches `cat > wiki/notes/x.md` and misses a script that builds the path at
   runtime.
-- **The root is matched as a whole path, not a prefix, and that is not fussiness.**
-  `docs/wiki-inbox/` begins with `docs/wiki`, so a substring test fires on the conventional inbox —
+- **The root is matched as a whole path, not a prefix, and that is not fussiness.** On the old layout
+  `docs/wiki-inbox/` began with `docs/wiki`, so a substring test fired on the conventional inbox —
   the one path in another project's repo this protocol permits writing to. The denial is not the
   damage, since the guard fails open. **A false positive spends the session's only fire**, and the
-  real wiki edit later in that same session then passes unguarded, silently. Anchoring on
-  `docs/wiki/` with a trailing slash would also stop the collision and would lose `awt fmt
-  docs/wiki`, a genuine bulk write with nothing after the root.
+  real wiki edit later in that same session then passes unguarded, silently. `wiki/notes` has no such
+  sibling, and the rule stays because the next layout may. Anchoring on the root with a trailing
+  slash would also stop a collision and would lose `awt fmt wiki/notes`, a genuine bulk write with
+  nothing after the root.
+- **`WIKI_ROOT` is the one copy of the layout outside `awt.config.mjs`, and it is a copy on purpose.**
+  A shell hook cannot read a JavaScript config, so the path is restated here and nowhere else. It
+  moves when `rootDir` moves, and §4 is where that happens.
 - **It fails open at every step** — no `jq`, unreadable JSON, unwritable marker. A guard that blocks
   wiki work because it is itself broken is worse than no guard.
 - **The marker is per session id, in `TMPDIR`.** Nothing to clean up, and nothing lands in the repo.
@@ -170,7 +174,7 @@ it:
 
 | Trigger                                                                           | Steps         |
 |-----------------------------------------------------------------------------------|---------------|
-| A new version of the skill is installed                                           | All           |
+| A new version of the skill is installed                                           | All, then §4  |
 | Asked whether the project is still in step with the skills it uses — any phrasing | All           |
 | **You have written or rewritten a `meta/` note, or the `CLAUDE.md` block**        | 2, 3, 4, 6    |
 | **Content has been extracted out of this wiki into a skill**                      | 3, 4, 6       |
@@ -231,7 +235,7 @@ hook's `WIKI_ROOT` only moves when the project's layout does.
 
    ```shell
    grep -rniE 'awt|mdfmt|remark|foam|wikilink|\[\[|okf|front.?matter|placeholder|orphan|dead.?end|split_by_heading|rename_tag|build_listing|allow-writes|workspace_info|quartz' \
-     CLAUDE.md AGENTS.md docs/wiki/index.md docs/wiki/log.md docs/wiki/meta/ .claude/ 2>/dev/null
+     CLAUDE.md AGENTS.md README.md wiki/notes/index.md wiki/notes/log.md wiki/notes/meta/ wiki/site/README.md .claude/ 2>/dev/null
    ```
 
    **`index.md` and `log.md` are in the list because they are the gap the rule's wording left.** Both
@@ -271,8 +275,9 @@ hook's `WIKI_ROOT` only moves when the project's layout does.
    in `SKILL.md` for why identical output is not the point.
 
 5. **Replace the guard hook** with the script in §2, wholesale, carrying this project's `WIKI_ROOT`
-   across — then check it is executable and that `WIKI_ROOT` still matches `.mcp.json`. Add it if it
-   is missing, and say so.
+   across — then check it is executable and that `WIKI_ROOT` is `<rootDir>/notes` for the `rootDir`
+   in `awt.config.mjs` (`wiki/notes` when unwritten). Add it if it is missing, and say so. If the
+   project is still on the old layout, `WIKI_ROOT` is `docs/wiki` and §4 is the next thing to run.
 
    **Replacement rather than inspection, because this hook's failures are silent.** It fails open by
    design, so a stale one guards nothing and says nothing about it; there is no error to notice and
@@ -287,3 +292,99 @@ hook's `WIKI_ROOT` only moves when the project's layout does.
 **Adoption is not a wiki edit.** It touches `CLAUDE.md`, `.claude/` and `meta/` prose — no notes are
 created, renamed or moved, so nothing here needs the write tools. Run `awt check` afterwards anyway
 if you touched `meta/`, since a deleted paragraph can take a `[[link]]` with it.
+
+## 4. Moving a wiki to the home layout
+
+**Run this once, on a project whose wiki is still `docs/wiki/` beside `site/`.** How to tell: `awt
+check --json` from the project root reports a `notesDir` ending in `docs/wiki`, and the first `awt`
+command of a session prints one line saying the project *is laid out the old way*. A project already
+reporting `wiki/notes` is done and this section does not apply.
+
+What the move is for is in *The layout* in `setup.md`: one home, named once, every other directory a
+fixed name inside it, and no second copy of the path anywhere. The old shape keeps working
+indefinitely — the toolbox reads it as legacy — so this is not urgent; it is worth doing because
+every file that restated the path is one the sweep above has to police, and afterwards there is one.
+
+**It is a wiki edit and a repo edit at once, and neither the write tools nor `mv` are the right tool
+for the first half.** The notes move as a directory, with `git mv`, so their history follows and
+every `[[wikilink]]` inside is untouched — links are relative to the notes root, and the root is what
+moves. Nothing inside the notes changes.
+
+Do it in this order, from the project root, on a clean working tree:
+
+1. **Read what names the old paths.** Before moving anything:
+
+   ```shell
+   grep -rnE 'docs/wiki|\bsite/|\.remark|wiki-inbox' \
+     awt.config.mjs .mcp.json CLAUDE.md README.md AGENTS.md bin/ .claude/ site/README.md \
+     site/quartz.config.yaml docs/wiki/meta/ docs/wiki/index.md docs/wiki/log.md 2>/dev/null
+   ```
+
+   Every hit is either a path to rewrite in step 5 or prose to rewrite in step 6. Keep the list.
+
+2. **Move the directories.** The four moves, in one commit later:
+
+   ```shell
+   mkdir -p wiki
+   git mv docs/wiki       wiki/notes
+   git mv site            wiki/site         # if the project has one
+   git mv .remark         wiki/schemas      # if it has schemas
+   git mv docs/wiki-inbox wiki/inbox        # if it exists — it may not, between messages
+   ```
+
+   `git mv` carries untracked files inside `site/` along — the Quartz clone, `public/`, the plugin
+   symlinks — so nothing has to be rebuilt. The symlinks `awt bootstrap-quartz` made are absolute or
+   relative within `site/` and survive the move; the one from the clone back to
+   `quartz.config.yaml` is relative and survives too. Run `awt bootstrap-quartz` afterwards anyway
+   if anything about the site looks off; it is idempotent.
+
+3. **Rewrite `awt.config.mjs`.** Three things:
+
+   - `rootDir` — leave it unwritten if the home is `./wiki`; write it only for a different home.
+   - Schema paths — `./.remark/x.json` becomes `./wiki/schemas/x.json`.
+   - **Schema globs — relative to the notes now.** `docs/wiki/meta/**/*.md` becomes `meta/**/*.md`.
+     A glob still spelling out `wiki/notes/` matches nothing and says nothing, because the layout
+     anchors globs to the notes directory; this is the one edit that fails silently if skipped.
+
+   Then `awt fmt --check` from the project root and confirm the schemas fire: introduce a deliberate
+   bad `status` in one note, see it reported, revert it.
+
+4. **Shrink `.mcp.json`.** The entry becomes `["mcp", "--allow-writes"]` — no `--workspace`, no path.
+   A session has to be restarted to pick that up; until then the running server still points at
+   `docs/wiki`, which no longer exists, and every MCP tool call fails. Use `awt` from a shell for the
+   rest of this section.
+
+5. **Replace the guard hook with `WIKI_ROOT="wiki/notes"`** — §2's script wholesale, as step 5 of the
+   sweep says, carrying the new root across. This is the one copy of the path that remains, and it
+   moves here or it guards nothing.
+
+6. **Rewrite the prose that named the old paths** — the list from step 1. `CLAUDE.md`'s line above
+   the managed block, the README, `wiki/site/README.md`, `meta/interop.md`'s inbox declaration, any
+   `bin/` wrapper that `cd`s into `site/`. The `meta/` notes are the ones to read carefully: a note
+   that says *the schemas live in `.remark/`* was a choice when written and is now a stale path.
+   Reduce each to the choice it records, or delete it and point at *The layout* in `setup.md`.
+
+7. **Tell the wikis that depend on this one.** A registry in another project's
+   `site/quartz.config.yaml` names this wiki's build output by relative path —
+   `../../this-project/site/public/static/contentIndex.json` — and now has to say
+   `../../../this-project/wiki/site/public/…` from its own new home, or `../../this-project/wiki/site/…`
+   from an old one. The resolver warns rather than fails on a missing index, so a stale registry
+   shows up as every cross-wiki link into this wiki going dead with a warning in that project's build
+   log, not as an error. Send that project a message (see `interop.md`) or fix it if it is yours.
+
+8. **Verify, then commit as one change.**
+
+   ```shell
+   awt check                         # from the project root: notesDir is wiki/notes, no legacy line
+   awt fmt --check                   # formatting and the schemas, from the project root
+   awt serve                         # if there is a site: it builds, and the shadow is clean
+   git status                        # nothing untracked that used to be ignored
+   ```
+
+   Then the sweep's step 3 grep once more over the new paths — a `docs/wiki` that survives is either
+   history, which is fine in `log.md`, or a stale instruction, which is not.
+
+**What does not change:** the notes themselves, every wikilink, every rendered URL, the site's
+`quartz.config.yaml` (its plugin sources and index path are relative to `site/`, which moved as a
+unit), the pin, and the port. **What stays behind on purpose:** `.mcp.json`, `.claude/`, and the
+managed block — the agent harness's files, at the repo root where the harness looks for them.

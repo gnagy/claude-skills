@@ -4,36 +4,69 @@ Reference file for the `wiki-docs` skill. Read it when there is no wiki server c
 the wiki's `meta/` notes are missing, or when asked to add a wiki to a project. `SKILL.md` beside this
 file covers using a wiki that already exists.
 
+## The layout
+
+A wiki has one home, and the project names it once — in `awt.config.mjs` at the project root, which
+is also the marker every `awt` command and the server walk up to from any directory inside the
+project:
+
+```
+awt.config.mjs        # rootDir names the home; ./wiki is the default, so usually unwritten
+wiki/
+  notes/              # the wiki root — every workspace-relative path is relative to this
+  site/               # the rendered site's config and build (see site.md); absent until wanted
+  schemas/            # front-matter schemas
+  inbox/              # the interop inbox (see interop.md); absent until a message arrives
+```
+
+```js
+export default {
+  rootDir: './wiki',    // only to move it
+  serve: {port: 8101},  // see site.md
+}
+```
+
+The four names under the home are fixed and not configurable: they are the toolbox's convention, so
+nothing under the home needs naming from outside it. **Nothing else states the layout** — not
+`.mcp.json`, not a schema glob, not a `meta/` note — because a second copy of a path is the one that
+goes stale. The guard hook in `adoption.md` is the single exception, and it says so.
+
 ## Server setup
 
-The server is configured per project in `.mcp.json`:
+The server is configured per project in `.mcp.json`, and names no path — it finds the config the
+same way the CLI does:
 
 ```json
 {
   "mcpServers": {
     "agent-wiki-toolbox": {
       "command": "awt",
-      "args": ["mcp", "--allow-writes", "--workspace", "docs/wiki"]
+      "args": ["mcp", "--allow-writes"]
     }
   }
 }
 ```
 
-`--workspace` is relative to the project root. Drop `--allow-writes` for a read-only wiki. `awt` has
-to be on `PATH` — `awt --version` says whether it is, and which install answered.
+Drop `--allow-writes` for a read-only wiki. `awt` has to be on `PATH` — `awt --version` says whether it
+is, and which install answered. An agent harness starts the server from the project root, which is
+what the walk-up relies on; `--workspace <notes-dir>` names the notes outright when that does not hold.
 
 Adding or changing the server requires restarting the agent session and approving it.
 
 ### Mounting other projects' wikis
 
-Mount them as additional servers, with an absolute path and **no** `--allow-writes`:
+Mount them as additional servers, with an absolute path to that project's **notes** directory and
+**no** `--allow-writes`:
 
 ```json
 "awt-homeit": {
   "command": "awt",
-  "args": ["mcp", "--workspace", "${HOME}/Ops/homeit/docs/wiki"]
+  "args": ["mcp", "--workspace", "${HOME}/Ops/homeit/wiki/notes"]
 }
 ```
+
+The path is the notes, not the home: a mount is a server over one wiki root, and the other project's
+config is not consulted. A project still on the old layout is mounted at its `docs/wiki`.
 
 Which project mounts which is not free choice: mount only down the dependency — see *Which way a
 mount points* in `interop.md` beside this file.
@@ -52,11 +85,15 @@ structure with the user** before writing a large number of notes. Layout and tax
 to settle before there are fifty notes to migrate.
 
 ```
-<wiki-root>/
+awt.config.mjs         # at the project root; `export default {}` is enough
+wiki/notes/
   index.md             # home + index of notes (OKF reserves this name; no front matter)
   meta/conventions.md  # front matter vocabularies, folders, filenames, linking
   meta/scope.md        # what belongs here vs. which repo files own a fact instead
 ```
+
+The config comes first, even empty: it is what makes `awt check` and `awt mcp` find the notes from
+anywhere in the project. Write `rootDir` in it only if the home is not `./wiki`.
 
 `meta/conventions.md` gets the wikilink rule and its OKF deviation note (see *Wikilinks vs. OKF links*
 in `SKILL.md`) as part of the skeleton — not something to agree first.
@@ -87,8 +124,19 @@ for the project's `CLAUDE.md` and the guard hook — both are part of bootstrapp
 
 **A vocabulary written only in `meta/conventions.md` is a vocabulary that drifts.** Put it in a JSON
 Schema at the same time you agree it, so a violation fails a check instead of surviving until someone
-reads all the notes. What follows is the wiki-shaped starting point, saved as `.remark/note.json` and
-referenced from `awt.config.mjs`.
+reads all the notes. What follows is the wiki-shaped starting point, saved as
+`wiki/schemas/note.json` and referenced from `awt.config.mjs`:
+
+```js
+export default {
+  schemas: {'./wiki/schemas/note.json': ['**/*.md']},
+}
+```
+
+The schema path is relative to the config file, like every path in it; **the globs are relative to
+the notes directory**, so `meta/**/*.md` names the `meta/` folder of the wiki and never spells the
+layout out. A project still on the old layout keeps its globs relative to the config, which is where
+they were written.
 
 ```json
 {

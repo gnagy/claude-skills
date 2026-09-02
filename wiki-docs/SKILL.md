@@ -62,12 +62,18 @@ while the tool that does it safely sits on `PATH`.
 
 ## Orient first
 
-The wiki root is whatever `.mcp.json` passes as `--workspace`; by convention `docs/wiki/`. All paths
-below are relative to that root.
+**A wiki has one home, and the project names it once.** `rootDir` in `awt.config.mjs` at the
+project root names the directory — `wiki/` when unsaid — and everything the wiki owns is a fixed name
+inside it: `notes/` (the wiki root, every path below is relative to it), `site/`, `schemas/` and
+`inbox/`. The server and every `awt` command find that config by walking up, so `.mcp.json` names no
+path and neither does anything else. `workspace_info` reports `notesDir` and, when the project has one,
+`rootDir` — two directories, two names, never inferred from each other. A project laid out the old way,
+`docs/wiki/` beside `site/`, still works and is told so once; `adoption.md` beside this file says how
+to move it.
 
 **There may be more than one wiki server.** A project can mount other projects' wikis read-only
 alongside its own — see [Other wikis](#other-wikis-read-only-mounts). Exactly one is writable: yours.
-`workspace_info` reports `root` and `allowWrites`, so confirm which server you are talking to before
+`workspace_info` reports `notesDir` and `allowWrites`, so confirm which server you are talking to before
 writing, rather than inferring it from the server's name.
 
 Three notes define how this particular wiki works, and a fourth appears only in projects that exchange
@@ -114,7 +120,7 @@ prose into it. Your own `Read`, `Write` and `Edit` do those, and better.
 
 | Tool             | Reach for it when                                                                |
 |------------------|----------------------------------------------------------------------------------|
-| `workspace_info` | First call — is the server live, is `root` the wiki you mean, may you write      |
+| `workspace_info` | First call — is the server live, is `notesDir` the wiki you mean, may you write  |
 | `search`         | Default entry point. Note **bodies**, titles, front matter and tags, in one call |
 | `connections`    | Widening from one hit to its neighbours — the highest-yield second call          |
 | `resolve`        | What a link points at; **and what else matched**, when it is ambiguous           |
@@ -188,12 +194,15 @@ Three things about how they behave, all of which change how you use them:
 The same operations, same names in kebab-case, when a shell is easier than a tool call:
 
 ```shell
-awt check -w docs/wiki             # the whole graph, one call
+awt check                          # the whole graph, one call — the project's notes, from anywhere in it
 awt search 'listing budget'        # bodies as well as titles
 awt resolve 'stem#a-heading'       # …and what else matched
-awt move docs/wiki/a.md docs/wiki/b.md
+awt move a.md design/a.md          # paths relative to the notes, like every tool's
 awt --help                         # every operation
 ```
+
+`-w` still names a notes directory outright — a scratch wiki, another project's — and otherwise a
+command means the project it is run inside.
 
 ## Editing
 
@@ -352,7 +361,8 @@ not the edges.
 **Format a wiki with the `fmt` tool, or with `awt fmt` from a shell.** They are one formatter, the
 toolbox's own, and it is wikilink-aware — which is the whole reason not to reach for anything else
 here (see the hazard below). On the command line it takes `-w` like every other subcommand, so a note
-path is a note path there too: `awt fmt -w <wiki-root> meta/conventions.md`.
+path is a note path there too: `awt fmt -w <notes-dir> meta/conventions.md` — or, from inside the
+project, `awt fmt -w wiki/notes meta/conventions.md`.
 
 > **`awt` is a standalone CLI, not a project pipeline.** It carries its own config and plugins, so it
 > formats any directory without that project installing anything — it works in a repo with no
@@ -412,9 +422,11 @@ Two other wiki-flavoured uses of the same toolchain:
 One call, after a batch of edits:
 
 ```shell
-awt check -w <wiki-root>          # every problem, plus placeholders, orphans and dead ends
-awt check -w <wiki-root> --json   # the same answer, for a script
+awt check                         # every problem, plus placeholders, orphans and dead ends
+awt check --json                  # the same answer, for a script
 ```
+
+Both mean the project's own notes from anywhere inside it; `-w` names another directory.
 
 It exits non-zero when there are **problems** and zero when there are only placeholders, which is the
 distinction that matters: a placeholder is a note worth writing, not a defect, and a check that failed
@@ -460,16 +472,16 @@ A wiki is written for agents and for whoever edits it, and **neither is a reader
 render its own wiki into a browsable static site — backlinks, graph, search, hover previews — and,
 where several wikis reference each other, into links that actually cross between them.
 
-**The project that owns the wiki builds its own site**, from a `site/` directory in that repo. There
-is no central builder: a wiki always lives inside the repo that owns its subject matter, so anything
+**The project that owns the wiki builds its own site**, from the `site/` directory in the wiki's home
+(`wiki/site/` by default). There is no central builder: a wiki always lives inside the repo that owns its subject matter, so anything
 else means submoduling a subdirectory (git cannot) or handing a build host a credential to a repo
 whose markdown is the only part it needs.
 
 Two things worth knowing before reading further, because both come up as questions rather than as
 tasks:
 
-- **Do not gitignore `site/` wholesale.** `quartz.config.yaml` and `site/.gitignore` are tracked; the
-  renderer clone and the build output are not.
+- **Do not gitignore the site directory wholesale.** `quartz.config.yaml` and its `.gitignore` are
+  tracked; the renderer clone and the build output are not.
 - **A cross-wiki reference is a prefixed markdown link** — `[conventions](otherwiki:meta/conventions.md)`
   — never a `[[wikilink]]`, for the placeholder reason in
   [Other wikis](#other-wikis-read-only-mounts). It stays inert in the graph and the editor, and becomes a

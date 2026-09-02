@@ -12,7 +12,7 @@ A project may mount other projects' wikis as additional read-only servers, conve
 the project. Each mount adds five read tools; `--allow-writes` adds seven more, so a mount
 without it has no write surface at all rather than an unused one.
 
-`workspace_info` reports `root` and `allowWrites`, so confirm which server you are talking to
+`workspace_info` reports `notesDir` and `allowWrites`, so confirm which server you are talking to
 before writing, rather than inferring it from the server's name. To add a mount, see `setup.md`
 beside this file.
 
@@ -123,8 +123,8 @@ and the lookup above is for a wiki you are writing to first.
 ## Sending a message to another wiki
 
 Rule 1 says don't edit their notes; this is the sanctioned alternative. The receiving project has an
-inbox directory **outside its wiki root** — conventionally `docs/wiki-inbox/`, beside `docs/wiki/`,
-but always as declared in its `meta/interop.md`. The sender writes a file there directly with Write.
+inbox directory **outside its wiki root** — the `inbox/` in the wiki's home, `wiki/inbox/` beside
+`wiki/notes/` in the default layout, but always as declared in its `meta/interop.md`. The sender writes a file there directly with Write.
 That is the **only** path in another project's repo any session may write.
 
 **Outside the wiki root is deliberate, on two counts.** Nothing indexes the inbox, so messages
@@ -158,7 +158,7 @@ reads these files, and a closed vocabulary no machine enforces is a schema you c
 what happened in the body, in your own words.**
 
 **`inbox:` is a return address, not a request for a reply.** `from:` is a wiki's name, not a place, and
-`docs/wiki-inbox/` means nothing without knowing where that checkout is — so a receiver who wants to
+`wiki/inbox/` means nothing without knowing where that checkout is — so a receiver who wants to
 answer has to go and find the sender, and that search can fail. It has: one message arrived whose
 sender's repo the receiver could not locate at all, and no reply was possible whatever it decided.
 The field costs the sender a line. Give the path a session on this machine can open, and treat an
