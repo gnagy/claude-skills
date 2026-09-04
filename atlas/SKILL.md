@@ -71,6 +71,22 @@ If you cannot orient yourself: don't guess, say so, and stop if this blocks you.
 the case where the prompt does not make sense for the current location and no other location can
 be worked out either — ask the user rather than picking one.
 
+### Starting work elsewhere
+
+The common case is not "orient in place" but "start work on a different project": the user names a
+project or workspace from wherever the current session happens to be, meaning to work there, not
+here. Resolve it from the catalog and **hand back a session starter — the resolved path, and a
+ready first prompt — for the user to open a new session with, rather than moving the current
+session into it.** A fresh session boots its own tools against the directory it starts in; a
+session moved mid-conversation carries every tool it already connected to, MCP servers included,
+pointed at wherever they were when they connected, so a stateful one — a wiki server is the case
+this was found in — keeps answering for the old location until something restarts it, silently.
+
+Only move the running session instead — if a *directory-switch* action is available in this host —
+when the user asks to keep working in this same conversation, in this same place, having weighed
+that cost. Either way, say what you resolved and why, per *Orienting* above; a moved session says
+so before switching, a new-session handoff says so as the starter it hands back.
+
 ## Catalog entries
 
 One entry per resource, as a markdown note with a few front matter fields and short prose. Two
