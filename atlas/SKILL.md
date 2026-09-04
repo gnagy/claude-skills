@@ -76,16 +76,22 @@ be worked out either — ask the user rather than picking one.
 The common case is not "orient in place" but "start work on a different project": the user names a
 project or workspace from wherever the current session happens to be, meaning to work there, not
 here. Resolve it from the catalog and **hand back a session starter — the resolved path, and a
-ready first prompt — for the user to open a new session with, rather than moving the current
-session into it.** A fresh session boots its own tools against the directory it starts in; a
-session moved mid-conversation carries every tool it already connected to, MCP servers included,
-pointed at wherever they were when they connected, so a stateful one — a wiki server is the case
-this was found in — keeps answering for the old location until something restarts it, silently.
+ready first prompt — for the user to open a new session with. Never use a host's directory-switch
+action for this, even if the host offers one and even if asked.**
 
-Only move the running session instead — if a *directory-switch* action is available in this host —
-when the user asks to keep working in this same conversation, in this same place, having weighed
-that cost. Either way, say what you resolved and why, per *Orienting* above; a moved session says
-so before switching, a new-session handoff says so as the starter it hands back.
+A directory-switch action, where a host has one, moves file tools and the instructions the session
+loads, and stops there — every tool the session already connected to, MCP servers included, stays
+pointed at wherever it was when it connected. A stateful one goes on answering for the old project
+under the new project's name, and nothing about the switch says so: a wiki server was the case this
+was found in, and it kept serving the old project's notes as if they were the new one's, through two
+switches, silent both times. That is not a rough edge to warn about and use anyway — a write through
+a tool in that state lands in the wrong project's data, and the skill will not cause that. Treat the
+action as unavailable for this purpose regardless of what the host calls it or how convenient it
+looks; there is no version of "the user asked for the switch" that makes a misdirected write safe.
+
+A fresh session has nothing to carry over: its tools boot against the directory it starts in, so
+there is no stale connection to inherit. Say what you resolved and why, per *Orienting* above, as
+the starter you hand back.
 
 ## Catalog entries
 
