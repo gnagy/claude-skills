@@ -75,9 +75,16 @@ be worked out either — ask the user rather than picking one.
 
 The common case is not "orient in place" but "start work on a different project": the user names a
 project or workspace from wherever the current session happens to be, meaning to work there, not
-here. Resolve it from the catalog and **hand back a session starter — the resolved path, and a
-ready first prompt — for the user to open a new session with. Never use a host's directory-switch
-action for this, even if the host offers one and even if asked.**
+here. Resolve it from the catalog and **open a genuinely new session there, if this host gives you
+a way to. Never use a host's directory-switch action for this, even if the host offers one and even
+if asked.**
+
+In Claude Desktop that way is the `claude://code/new?folder=<path>&q=<prompt>` deep link:
+run `open "claude://code/new?folder=<resolved path>&q=<url-encoded first prompt>"` and it opens a
+new Code session rooted at that path, with the prompt sitting ready in the composer — deep links
+never auto-submit, by design, so say that's what to expect rather than treat it as a stall. Where a
+host has no such route, fall back to handing the user the resolved path and a ready first prompt to
+open a new session with themselves.
 
 A directory-switch action, where a host has one, moves file tools and the instructions the session
 loads, and stops there — every tool the session already connected to, MCP servers included, stays
@@ -90,8 +97,8 @@ action as unavailable for this purpose regardless of what the host calls it or h
 looks; there is no version of "the user asked for the switch" that makes a misdirected write safe.
 
 A fresh session has nothing to carry over: its tools boot against the directory it starts in, so
-there is no stale connection to inherit. Say what you resolved and why, per *Orienting* above, as
-the starter you hand back.
+there is no stale connection to inherit. Say what you resolved and why, per *Orienting* above,
+whichever form the handoff takes.
 
 ## Catalog entries
 
