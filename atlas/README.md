@@ -1,70 +1,42 @@
 # atlas
 
-You have most likely arrived here from a `spec:` line in an `atlas.md`. This directory defines that
-file's format, and the model behind it.
-
-## Reading an `atlas.md`
-
-An `atlas.md` describes the directory it sits in, for whoever has just landed there with no other
-context. Three fields carry it:
-
-- **`atlas:`** — what the directory is. One of `project`, `workspace`, `checkout`, `material`,
-  `aggregation` (a container holding children it does not own), or `unknown` (looked at, not yet
-  worked out).
-- **`spec:`** — where the format is defined. The URL that brought you here, and the same in every
-  marker.
-- **`authority:`** — who owns the facts about this region. A clonable repository means the region is
-  catalogued there; `self` means the thing catalogues itself; **absent means the enclosing authority
-  still owns it**, which is the ordinary case.
-
-Two more appear only when a marker describes somewhere else: `describes:` names the target path, and
-`observed:` the date it was last looked at. **A marker with `describes:` says nothing about the
-directory it sits in** — it is a pointer, not a description of its own neighbourhood.
-
-If you are walking a tree: keep descending past a marker with no `authority`, and stop at one that
-has it. Everything below an authority belongs to that authority.
-
-The body under the front matter says what the directory is and what is directly below it, one level
-deep. It never explains how to build anything — that belongs to the project's own documentation, and
-the marker points at it.
-
-**`marker.md` beside this file is the full specification**, including what a marker must never
-contain and worked examples.
+A model for describing what is on disk, so that work can start without re-explaining it.
 
 ## What atlas is
 
-A model for describing what is on disk, so that work can start without re-explaining it. It exists
-for the questions that run past one repository: what is this directory, which project does this
-checkout belong to, what else depends on it, what has to be cloned and installed before a task can
-run at all.
+The ordinary use is plain. A person catalogs a project's resources once. From then on, an agent
+told the project opens the catalog, finds the checkouts and the document to read next, and gets
+to work. The catalog exists for the questions that run past one repository: which project does
+this checkout belong to, what else depends on it, where is it on this machine, what has to be
+cloned and installed before a task can run at all.
 
-A walk of the tree answers some of that. It is slow, part of it is guesswork someone has to confirm,
-and the answer is thrown away at the end of the session — and the most useful facts are the ones
-somebody decided rather than the ones a tool can read. A **catalogue** is where those get recorded:
-markdown notes holding membership, placement and dependency, and nothing derivable from the files. An
-`atlas.md` is how a directory declares its own place, so a catalogue does not have to infer it.
+Those facts have three homes, and keeping them apart is most of the model. A person's own catalog
+holds what is true only on their machines, which is where things are. A project's shared catalog,
+kept in the project's own repository with the people who work on it, holds what is true of the
+project for everyone: what it is made of and what depends on what. And a repository says for itself
+what it is and which project it belongs to, in its own README or agent instructions. Facts move
+between the three in fixed directions, and a path on one machine never leaves it.
 
-The model prescribes a small vocabulary and one file format, and stops there. It does not name your
-catalogue, your repositories or your directories, and a project that adopts it keeps its own
-documentation, its own conventions and its own build.
+The model prescribes a small vocabulary and stops there. It does not name your catalog, your
+repositories or your directories, and a project that adopts it keeps its own documentation, its
+own conventions and its own build. An entry is a few fields and a paragraph.
 
 ## What is in this directory
 
-| File         | What it is                                                        |
-|--------------|-------------------------------------------------------------------|
-| `SKILL.md`   | The model — units, relations, and writing and keeping a catalogue |
-| `marker.md`  | The `atlas.md` specification                                      |
-| `walking.md` | Working out what is in a tree nobody has catalogued yet           |
+| File         | What it is                                                      |
+|--------------|-----------------------------------------------------------------|
+| `SKILL.md`   | The model: reading a catalog, who owns which facts, keeping one |
+| `entries.md` | The shape of an entry, and one section per type                 |
 
 ## Using it as a Claude Code skill
 
 `atlas` is a [Claude Code](https://claude.com/claude-code) skill in
-[gnagy/claude-skills](https://github.com/gnagy/claude-skills). It loads itself on a question about
-what a directory is or belongs to, or on a tree with an `atlas.md` in it, and runs on `/atlas` when
-you want it deliberately. **Loading it is not permission to write** — the skill's own body says
-markers are written when asked and a walk is started by a person. To install it from a clone of that
-repository, run the `skills add` command in that repo's own `README.md` with `--skill atlas` — the
-flags carry two traps, and they are explained beside it there rather than copied here.
+[gnagy/claude-skills](https://github.com/gnagy/claude-skills). It loads itself when work starts on
+a cataloged project or a question runs past one repository, and runs on `/atlas` when you want it
+deliberately. **Loading it is not permission to write.** The skill's own body says a catalog is
+added to, a region charted and a pointer written only when a person asks. To install it from a
+clone of that repository, run the `skills add` command in that repo's own `README.md` with
+`--skill atlas`. The flags carry two traps, explained beside the command there rather than copied
+here.
 
-Nothing else in this directory depends on Claude Code. `marker.md` is a file format any agent or
-person can read, and the model in `SKILL.md` and `walking.md` is prose.
+Nothing in this directory depends on Claude Code beyond the skill front matter. The model is prose.

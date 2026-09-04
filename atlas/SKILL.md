@@ -1,208 +1,213 @@
 ---
 name: atlas
-description: Use this skill when a question runs past one repository — what a directory is, which project it belongs to, what depends on it, what a working copy is a checkout of, or what has to be cloned before a task can run. Also when a tree contains an `atlas.md` marker, or when asked to walk a tree, or to write or keep a catalogue of one. Covers the units and relations, finding and reading a catalogue, keeping one, the marker format, and walking an uncatalogued tree. Runs on `/atlas` as well.
+description: >-
+  Use this skill when work on a project starts from its catalog (the user names a project or workspace and the right checkouts and documents have to be found), or when a question runs past one repository: which project a directory belongs to, what a working copy is a checkout of, what depends on it, what has to be cloned first. Also for a project whose facts are shared in a project repository, for cataloging a region on request, and for adding a project's atlas pointer to its instructions. Runs on `/atlas` as well.
 ---
 
 # Atlas
 
-A **catalogue** records what a tree of repositories cannot say about itself: which directories
-belong together, what each one is for, and what depends on it from outside. **Atlas** is the model
-catalogues are written in, so one person's catalogue is readable by someone else's agent. An
-`atlas.md` **marker** lets a directory declare its own place. `README.md` beside this file says
-what atlas is for; this file says what to do.
+Atlas helps users and agents find their way around project resources: repos, workspaces, data
+directories, and the like. It is a model for keeping a catalog of those resources, for using the
+catalog to make sense of them, and for sharing that information with other people who work on the
+same projects.
 
-**Reading is free; writing is asked for.** Answer from a catalogue or a marker whenever the
-question comes up. Write an `atlas.md` only when someone asks for one, and start a walk only when a
-person starts it. Noticing that a tree would be easier to work in with markers is worth one
-sentence to whoever owns it, not a marker.
+`README.md` beside this file is a short introduction, written to be linked from shared atlas
+resources for people who have not met atlas before.
 
-## Finding the answer
+## Working from a catalog
 
-From the directory in question:
+Usually the user and the agent already know about the catalog, from the prompt or from a
+`CLAUDE.md`, and use it to look up context about the project that does not need repeating in the
+prompt or copying into several project resources.
 
-1. Look for an `atlas.md` here, then in each parent directory upward. Stop at the first one found.
-2. If it has no `authority:`, read it and keep going up: it describes this place, and the catalogue
-   that owns the region is further up.
-3. If `authority: self`, the catalogue is in this repository, starting at `atlas/index.md`. If
-   `authority:` names a repository, the catalogue is there; open or clone it and start at its
-   `atlas/index.md`.
-4. Find the entry for the directory, or for its nearest ancestor that has one, and answer from it.
-   If the catalogue does not say, say so. Do not infer membership from the tree.
-5. With no marker anywhere above, there is no catalogue for this tree. Answer from what is on disk
-   and say it is a reading, not a record.
+### Finding the catalog.
 
-Example: in `~/work/acme/platform/api/` the nearest marker is `~/work/acme/atlas.md`, with
-`authority: git@github.com:acme/acme-project.git`. Open that repository's `atlas/index.md`, find
-the entry for `platform`, and read what `api/` is from there.
+The user's user-level agent instructions can define where it is stored.
+For Claude Code that is `~/.claude/CLAUDE.md`. One line is enough, for example:
 
-## Units
+```markdown
+My atlas is at ~/atlas, a clone of git@github.com:me/atlas.git. Start at atlas/index.md.
+```
 
-| Unit          | What it is                                                                                            |
-|---------------|-------------------------------------------------------------------------------------------------------|
-| **project**   | A named body of work. Nestable. May span workspaces, machines and roots, and may have no files at all |
-| **workspace** | A place work happens. See below                                                                       |
-| **repo**      | An identity, usually a remote. Independent of where it is checked out                                 |
-| **checkout**  | A repo in a directory on one machine. The thing you move, delete, back up                             |
-| **material**  | Files in no repo, described by nothing else                                                           |
+If there is no such line, ask. Do not search the disk for a catalog, and do not work it out from
+the current directory. The directory matters for orienting, not for finding the catalog.
 
-**A directory holds a placement, never an identity.** A `repo` appears only in a catalogue. A
-directory containing a working copy is a `checkout`, including when that working copy is the whole
-of the project's work; its marker body names the project, and the catalogue records `member-of`.
-`project` on a directory means the project's presence on this machine where that presence is not
-one working copy: a client engagement directory holding several checkouts and material.
+**Which environment this is** comes from the catalog checkout itself: a local-only agent file at
+its root, `CLAUDE.local.md` for Claude Code, names the environment, and that name is the section
+of the catalog whose placements are true here. The file is a one-line import stub; *Instruction
+files in an environment* below says what it imports. One host can hold two checkouts of the catalog,
+each claiming a different environment, which is how a sandbox is told apart from the main one.
+If the checkout has no such file, ask; never guess the environment from the hostname.
 
-Three things are **not** units:
+### Using the catalog
 
-- **Third-party is a role, not a type.** The role belongs to the relation, never to the repo.
-- **A README, a `CLAUDE.md` or a wiki is an attribute.** See *How far a project describes itself*.
-- **A toolchain is declared in the repo.** Record where the declaration is, never what it says.
+The steps, in general:
 
-## Relations
+0. Determine if you need context from the catalouge. Only use it needed / useful.
+1. Look up the project in the catalog, from whatever named it: the prompt, a `CLAUDE.md`, the
+   pointer in the project's own instructions. Then, in this environment's section, the workspaces
+   that name that project, and by path what sits under them.
+2. If you cannot reach a catalog, or find nothing relevant in it, tell the user and confirm
+   whether to continue.
+3. Narrow the scope within the workspace or project to the work at hand.
+4. List the resources the catalog entries name for it: repos, wikis, data files and so on.
+5. Look up details of those resources as needed, and read the document the entry points at. From
+   there the project's own documentation takes over.
 
-| Relation      | Joins                                                         | Where it comes from                                      |
-|---------------|---------------------------------------------------------------|----------------------------------------------------------|
-| `contains`    | A directory to what is under it                               | The filesystem. Derived, never recorded                  |
-| `member-of`   | A repo, checkout, material or project to the project it is in | Hand-written. The highest-value fact in a catalogue      |
-| `depends-on`  | A project or repo to a project or repo it needs               | Hand-written. Crosses projects, never implies membership |
-| `checkout-of` | A checkout to the repo it is a working copy of                | Hand-written. One-way                                    |
+## Orienting
 
-**A project owns a unit when the project's people decide its fate**: whether it is kept, changed,
-moved or deleted. A vendor clone kept to read alongside is contained and not owned; a fork that is
-patched and maintained is owned. `member-of` records ownership. `contains` never implies it.
+Determine where you need to perform an action and look those resource(s) up in the catalog.
 
-**Aggregation is a directory holding children it does not own**, and it is normal. A library one
-project depends on is a member of its own project and a dependency of the other, never a member
-of it. **A thing whose own docs say "read the parent first" is a member of the parent**, not a
-project in its own right.
+For example he CWD may be the project directory, but the work may be in the wiki, or the data directory, or another
+project even.
 
-**`checkout-of` runs one way.** A checkout names its repo; a repo record never names a checkout,
-and carries no path, branch, directory or link down to one. `origin` is not the authoritative
-answer to what a working copy is: a checkout can carry several remotes, and which repo it
-principally is, is a judgement someone records.
+The resources the prompt points at may have nothing to do with the current location, or the
+current location may be unknown — the agent started in the user's home directory, in Claude Code
+with no directory given, or in another project's directory the user forgot to leave. If the prompt
+and context make it clear the work belongs somewhere else, orient there regardless of where you
+started, and tell the user you did — never switch silently.
 
-## Workspace
+If you cannot orient yourself: don't guess, say so, and stop if this blocks you. This also covers
+the case where the prompt does not make sense for the current location and no other location can
+be worked out either — ask the user rather than picking one.
 
-A grouping of resources someone decides to work on as a unit: a local tree of checkouts, a CI
-pipeline, a cloud workspace an agent is given. **Started, not detected**: a person or an agent opens
-one, and nothing on disk defines it. **Children are not validated**: a member may be coupled to
-its siblings or checked out only to read alongside them.
+## Catalog entries
 
-Recognising one in an existing tree is a heuristic a person confirms. Three signals:
+One entry per resource, as a markdown note with a few front matter fields and short prose. Two
+identity types, **project** and **repo**, are the same everywhere and carry no path. Three
+placement types, **environment**, **workspace** and **material**, are at a path, and live in the
+section of the environment where that path is true. `unknown` is for something you looked at and
+could not place. **Read `entries.md` beside this file** for the shape of an entry, where each kind
+goes, and what each type is for.
 
-- **IDE or agent configuration at a level** (`.idea/`, `.vscode/`, an `AGENTS.md`) says *where* a
-  workspace is. Most reliable, and silent about membership.
-- **A module list inside that configuration** names *some* members. Evidence, not truth.
-- **Build coupling by relative path** is the strongest membership signal and still incomplete.
+Four things decide most entries. A repo is the repository itself, and a project is a body of work;
+neither is anywhere, so a directory is always a workspace or material and never a repo or a
+project. A checkout is a workspace with a repo behind it, one field and no separate type.
+Membership is your decision, not the directory tree's: a vendor clone beside your code is
+something your project depends on, not a member of it. And the entry points at the resource's own
+documentation rather than repeating it.
 
-## How far a project describes itself
+## Who owns which facts
 
-Two questions, asked separately.
+A person has an atlas, their view of the world, and cooperates with other people on projects whose
+facts are nobody's alone. So a fact has three possible homes, and **each says only what only it
+can know**:
 
-**How well does it document itself?** This decides whether the catalogue links or describes.
+| Layer                        | Owns                                                                                                |
+|------------------------------|-----------------------------------------------------------------------------------------------------|
+| **A personal catalog**       | Placements, meaning where things are in each of this person's environments; private notes           |
+| **A shared project catalog** | Membership, dependencies, external systems, which document to read next, the project's conventions  |
+| **A repository itself**      | What it is, what it needs, where its documentation is; and it may claim which project it belongs to |
 
-| Rung          | What is there                                           | What the catalogue does                      |
-|---------------|---------------------------------------------------------|----------------------------------------------|
-| **Nothing**   | No README, no docs                                      | The catalogue is the only description        |
-| **Prose**     | A README, a `CLAUDE.md`, an `AGENTS.md`                 | Link, and describe what the prose leaves out |
-| **Organised** | A knowledge base with its own conventions, often a wiki | Link. The catalogue still says what it *is*  |
+Facts move between the layers in fixed directions.
 
-**Does it declare itself?** An `atlas.md` at its root says what it is in the model's terms and
-points at its documentation. Declared: record the pointer. Not declared: the catalogue decides.
+- **Claims flow up.** A repository says what it is and what it needs. The project catalog may
+  record that. Membership stays the project's verdict, never the repository's claim.
+- **Verdicts flow down.** The project catalog says who is a member. A personal catalog takes
+  that as given and adds where each member is on this person's machines.
+- **Placements never flow up.** A path on one machine is nobody else's business and wrong
+  everywhere else. **A shared catalog never points at a personal one.**
 
-**Check that a document names the thing it sits in.** A README about a different repository grades
-as *Prose* and misleads everyone after you. Where it does not, grade *Nothing*, describe the thing
-yourself, and record that the document is wrong. A nested project's documentation is its own; it
-inherits nothing from the project containing it.
+A shared catalog is a role a repository plays, usually the project's own management repository,
+which has other work to do. It sits in one directory there so it does not spread through the
+rest. When two layers disagree on what a thing means, the one with authority over that fact wins,
+and the disagreement is worth a sentence to whoever keeps it.
 
-## Derive, don't transcribe
+## A participating project says what it is; the user says where the catalog is
 
-Never record what a tool can read from the files: remotes, commit dates, sizes, dependency lists.
-Two exceptions:
+A project in a catalog carries a one-line pointer in its own agent instructions, its `CLAUDE.md`
+or `AGENTS.md`, so that a session started there orients in one step. Pointers only, never a copy
+of the entry. Everything in that file is loaded into every session started there, while an entry is
+read when a question needs it.
 
-- **A thing with no files here.** An idea, an archived project, something on a share you cannot
-  read. Write it by hand.
-- **Facts needed before the files exist.** What to clone and how large it is, for an agent deciding
-  whether to. Record those with the date you measured them.
+**A committed file carries identity, never placement.** It usually sits at the root of a repository
+other people clone, so it cannot name one person's catalog. It says what to look for, not where:
+what this directory is in the model's terms, which project it belongs to, and the entry to open,
+all by name, with a line saying to find them in your atlas. A project whose facts are shared may
+also name its shared catalog there, because that catalog is the project's and not one person's.
 
-## The catalogue points, the project instructs
+**Where a personal catalog is belongs to the user's side**, in the user-level instructions
+that are never in a repository: `~/.claude/CLAUDE.md` for Claude Code, different in each environment.
+One line there serves every project the user has cataloged; *Finding the catalog* above shows it.
+A config file for this earns itself only when a machine holds more than one catalog or a tool has
+to read the list, and if one ever exists the line points at it, so the agent still discovers
+nothing.
 
-Setup and process live **in the project**, in documents an agent can follow. The catalogue records
-that the project exists, where it is, which project it belongs to, and which document to read next.
-It never explains how to build anything. Where a project documents nothing, the catalogue describes
-it; that is the one exception, and why `material` is a unit.
+Keeping the pointer current is part of keeping the catalog. A retired entry or a renamed project
+leaves a stale line here, and nothing else detects it.
 
-## Local rules
+## Instruction files in an environment
 
-A catalogue may add rules for its own tree: *every `data/` beside a checkout here is gitignored
-working material*, *anything under this root not in the module list is held, not owned*. Adding
-none is the ordinary case. **Apply the model's rules first, then the local ones**; where they
-disagree, say which you think is wrong and stop. **Local rules classify; they never add a value,
-redefine `workspace` or add a relation.** Where no value fits, write `unknown` and say in the body
-what did not fit. Where the additions live is the catalogue's business.
+Claude Code loads `CLAUDE.md` and `CLAUDE.local.md` from the working directory and every
+directory above it, up to the filesystem root, so a file at a workspace is read by every session
+started in any checkout under it. That makes a workspace's `CLAUDE.local.md` the natural home for
+the personal pointer a shared repository's root cannot carry. **The file is the environment's own
+instruction file for that place, not an atlas format**: it holds whatever a session there should
+know, and atlas contributes one line of it, which workspace this is, in which environment, of
+which project, and the entry to open. The skill recognises nothing about the file.
 
-## Entries
+**The content is versioned in the catalog and delivered by an import stub.** The file on disk is
+one line, created when the workspace's entry is and never edited afterwards:
 
-**One unit, one entry.** A repo and its checkout are two entries with two names: an identity after
-its owner and remote, a placement after its directory.
+```markdown
+@~/atlas/instructions/environments/maci/shelton-workspace.md
+```
 
-**Every entry records when it was last looked at.** Its subject is elsewhere and goes stale with
-nothing in the file changing.
+The file it names holds the content, and composes shared pieces by relative path, which is the
+same in every checkout of the catalog:
 
-**An entry is in one of four states, and all four are useful:**
+```markdown
+@../../projects/shelton.md
+@../maci.md
 
-| State         | What it says                                    |
-|---------------|-------------------------------------------------|
-| No entry      | Nobody has looked, or a parent's entry names it |
-| `unknown`     | Somebody looked and could not tell              |
-| A unit type   | Somebody decided what it is                     |
-| `aggregation` | Somebody decided it holds what it does not own  |
+Open this workspace in IntelliJ; the six checkouts are its modules.
+```
 
-Where a parent's entry already names a child and says what it is, the child needs no entry. Where
-somebody looked and found nothing to add, write the entry anyway: *looked and found nothing* and
-*nobody looked* are different facts. `aggregation` needs to know what the directory is *for*, which
-is not on disk; from a listing alone, `unknown` is the honest record.
+- `instructions/projects/<project>.md` is what is true of the project everywhere: how to work
+  on it, what to read first.
+- `instructions/environments/<name>.md` is what is true of the environment everywhere: its
+  tooling, its quirks. The catalog checkout's own `CLAUDE.local.md` is a stub importing this file,
+  which is where the environment claim in *Finding the catalog* lives.
+- `instructions/environments/<name>/<entry>.md` is what only that placement knows.
 
-**Never write a word that is only true from where you are standing.** *Ours*, *the client's*,
-*third-party*, *upstream of us*: name the owner instead.
+**Write where the answer changes**, as with `project` on entries: files stack up the tree in
+order, so the outermost workspace of a project says project and environment, and a nested one
+says only what differs. The directory sits outside the wiki, since these are not notes, and
+mirrors the entries: one file per entry that has anything to say.
 
-**Where a catalogue exists, keep the markers thin.** A marker must stand alone; a catalogue holds
-what several markers would otherwise repeat.
+Three costs, so nobody is surprised by them. Claude Code asks once per project before following
+an import that resolves outside the working directory, and declining silences the whole chain
+there without asking again; `/context` shows what loaded. Other agents do not follow imports, so
+to them the stub is an empty file. And a stub inside a checkout of someone else's repository is
+ignored by nothing unless the environment's global git excludes name it. **No secrets in any of
+these files**: their content lands in every session's context, and the catalog is a repository.
 
-**The entry format is not fixed yet.** In an existing catalogue, follow its conventions. Starting
-one, keep to the rules above and record the shape you chose in the catalogue's own conventions.
+## Keeping a catalog
 
-## Keeping a catalogue
+A catalog grows as resources are created and is kept for as long as the work lasts.
 
-A tree is walked once; a catalogue is kept for as long as the work lasts. Everything here is done
-when asked.
-
-- **Add**, when something lands the catalogue does not have. One unit, one entry.
-- **Correct a type.** A type is a claim: a container that turns out to have a purpose was a
-  workspace, not an aggregation.
+- **Add**, when something lands the catalog does not have. One unit, one entry.
+- **Correct a type.** A type is a claim.
 - **Resolve an `unknown`.** Ask whoever put the directory there what it was for. That answer is
   not on any disk and stops existing when they forget.
-- **Write down a rule you have applied twice**, with the catalogue's conventions.
-- **Retire.** A placement record dies with its directory; an identity record outlives it.
+- **Retire.** A placement record dies with its directory, and an environment's whole section
+  with the environment. An identity record outlives both.
 
-**Two checks settle coverage:**
+**Record decisions; measure separately.** Counts and sizes are true on the day and stale after.
+They go wherever the catalog keeps its chronology, dated.
 
-- **Every entry's location is distinct.** Two entries for one directory means identity and
-  placement were conflated.
-- **Everything in the region has an entry, or is named in a parent's entry with a reason.** A
-  directory that is not a unit at all goes here, named by its parent as not a thing, and why. It
-  never gets an entry of its own.
+**When the tree and the catalog disagree.** On what exists, the tree wins: re-observe and
+correct the entry. On what things mean, meaning membership, dependency, and which identity is
+primary, the catalog wins, because the tree records none of it.
 
-**Record decisions; measure separately.** Counts and sizes are true on the day and stale after;
-they go wherever the catalogue keeps its chronology, dated.
+## Charting
 
-**When the tree and the catalogue disagree:** on what exists, the tree wins, so re-observe and
-correct the entry. On what things mean, membership, dependency, which identity is primary, the
-catalogue wins, because the tree records none of it.
+Charting is something the user can ask for: look at specific directories and files that are not in the
+catalog yet, and add to the catalog as a stub if it matches a type in `entries.md` or custom types in the catalog.
+One entry per resource. Use your judgment and the resource's own files and documentation to decide what each entry is.
+Do not write `unknown` entries unless the user asks for them, for later classification;
+where you cannot tell, ask.
 
-## The marker file
-
-**Read `marker.md` beside this file** before writing an `atlas.md` or walking a tree that has them.
-
-## Walking a tree
-
-**Read `walking.md` beside this file.** It is started by a person, never volunteered.
+Charting is only for existing resources that predate the catalog. The normal way a catalog grows
+is one entry as each resource is created, and charting is never started on the agent's own
+initiative.
